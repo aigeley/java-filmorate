@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.NestedServletException;
+import ru.yandex.practicum.filmorate.controller.validation.ReleaseDateValidator;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.lang.reflect.Type;
@@ -61,7 +62,7 @@ class FilmControllerTest extends ItemControllerTest {
                                 + "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, "
                                 + "he discovers the shocking truth - 200!"
                 )
-                .releaseDate(LocalDate.of(1895, 12, 28))
+                .releaseDate(ReleaseDateValidator.FIRST_FILM_SHOW)
                 .build();
 
         String responseText = performPost(path, gson.toJson(filmToAdd), status().isOk());

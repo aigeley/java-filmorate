@@ -7,23 +7,24 @@ import ru.yandex.practicum.filmorate.controller.exception.ItemNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public abstract class ItemController<T> {
     protected final String path;
     protected final String itemName;
     private final Map<Integer, T> items;
-    private int lastId;
+    private AtomicInteger lastId;
 
     protected ItemController(String path, String itemName) {
         this.path = path;
         this.itemName = itemName;
         this.items = new HashMap<>();
-        this.lastId = 0;
+        this.lastId = new AtomicInteger(0);
     }
 
     protected int getNextId() {
-        return ++lastId;
+        return lastId.incrementAndGet();
     }
 
     protected Collection<T> getAll() {
