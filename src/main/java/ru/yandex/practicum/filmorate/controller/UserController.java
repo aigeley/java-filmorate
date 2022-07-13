@@ -28,9 +28,9 @@ public class UserController extends ItemController<User> {
 
     @PostMapping(BASE_PATH)
     public User put(@Valid @RequestBody User user) {
-        int userId = user.getId();
+        long userId = user.getId();
         boolean isIdMissing = userId == 0;
-        int userIdToAdd = isIdMissing ? getNextId() : userId; //если id не присвоен извне, то присваиваем сами
+        long userIdToAdd = isIdMissing ? getNextId() : userId; //если id не присвоен извне, то присваиваем сами
         String userName = user.getName();
         boolean isNameMissing = userName == null || userName.isBlank();
         String userNameToAdd = isNameMissing ? user.getLogin() : userName; //если имя пустое, то берём логин

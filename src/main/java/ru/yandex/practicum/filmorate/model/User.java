@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Value
 @Builder(toBuilder = true)
 public class User {
-    int id;
+    long id;
     @Email
     @NotBlank
     String email;

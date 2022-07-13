@@ -8,22 +8,23 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public abstract class ItemController<T> {
     protected final String path;
     protected final String itemName;
-    private final Map<Integer, T> items;
-    private AtomicInteger lastId;
+    private final Map<Long, T> items;
+    private final AtomicLong lastId;
 
     protected ItemController(String path, String itemName) {
         this.path = path;
         this.itemName = itemName;
         this.items = new HashMap<>();
-        this.lastId = new AtomicInteger(0);
+        this.lastId = new AtomicLong(0);
     }
 
-    protected int getNextId() {
+    protected long getNextId() {
         return lastId.incrementAndGet();
     }
 
@@ -31,7 +32,7 @@ public abstract class ItemController<T> {
         return items.values();
     }
 
-    protected T add(int itemId, T item) {
+    protected T add(long itemId, T item) {
         if (items.containsKey(itemId)) {
             throw new ItemAlreadyExistsException(itemId, itemName);
         }
@@ -41,7 +42,7 @@ public abstract class ItemController<T> {
         return item;
     }
 
-    protected T update(int itemId, T item) {
+    protected T update(long itemId, T item) {
         if (itemId == 0 || !items.containsKey(itemId)) {
             throw new ItemNotFoundException(itemId, itemName);
         }

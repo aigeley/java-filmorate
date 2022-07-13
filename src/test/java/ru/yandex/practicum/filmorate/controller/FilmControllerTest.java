@@ -206,7 +206,7 @@ class FilmControllerTest extends ItemControllerTest {
 
         String responseText = performGet(path, status().isOk());
         List<Film> createdFilms = gson.fromJson(responseText, listType);
-        createdFilms.sort(Comparator.comparingInt(Film::getId));
+        createdFilms.sort(Comparator.comparingLong(Film::getId));
         assertEquals(filmsToAdd, createdFilms);
     }
 

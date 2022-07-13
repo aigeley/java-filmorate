@@ -28,9 +28,9 @@ public class FilmController extends ItemController<Film> {
 
     @PostMapping(BASE_PATH)
     public Film add(@Valid @RequestBody Film film) {
-        int filmId = film.getId();
+        long filmId = film.getId();
         boolean isIdMissing = filmId == 0;
-        int filmIdToAdd = isIdMissing ? getNextId() : filmId; //если id не присвоен извне, то присваиваем сами
+        long filmIdToAdd = isIdMissing ? getNextId() : filmId; //если id не присвоен извне, то присваиваем сами
         Film filmToAdd;
 
         if (isIdMissing) {

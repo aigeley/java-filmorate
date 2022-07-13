@@ -172,7 +172,7 @@ class UserControllerTest extends ItemControllerTest {
 
         String responseText = performGet(path, status().isOk());
         List<User> createdUsers = gson.fromJson(responseText, listType);
-        createdUsers.sort(Comparator.comparingInt(User::getId));
+        createdUsers.sort(Comparator.comparingLong(User::getId));
         assertEquals(usersToAdd, createdUsers);
     }
 
