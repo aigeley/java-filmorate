@@ -26,8 +26,9 @@ public class UserController extends ItemController<User> {
         return super.getAll();
     }
 
+    @Override
     @PostMapping(BASE_PATH)
-    public User put(@Valid @RequestBody User user) {
+    public User add(@Valid @RequestBody User user) {
         long userId = user.getId();
         boolean isIdMissing = userId == 0;
         long userIdToAdd = isIdMissing ? getNextId() : userId; //если id не присвоен извне, то присваиваем сами
@@ -38,14 +39,19 @@ public class UserController extends ItemController<User> {
         User userToAdd;
 
         if (isUserRebuildNeeded) {
-            userToAdd = user.toBuilder().id(userIdToAdd).name(userNameToAdd).build();
+            userToAdd = user
+                    .toBuilder()
+                    .id(userIdToAdd)
+                    .name(userNameToAdd)
+                    .build();
         } else {
             userToAdd = user;
         }
 
-        return super.add(userIdToAdd, userToAdd);
+        return super.add(userToAdd);
     }
 
+    @Override
     @PutMapping(BASE_PATH)
     public User update(@Valid @RequestBody User user) {
         String userName = user.getName();
@@ -54,12 +60,15 @@ public class UserController extends ItemController<User> {
         User userToUpdate;
 
         if (isNameMissing) {
-            userToUpdate = user.toBuilder().name(userNameToUpdate).build();
+            userToUpdate = user
+                    .toBuilder()
+                    .name(userNameToUpdate)
+                    .build();
         } else {
             userToUpdate = user;
         }
 
-        return super.update(user.getId(), userToUpdate);
+        return super.update(userToUpdate);
     }
 
     @Override

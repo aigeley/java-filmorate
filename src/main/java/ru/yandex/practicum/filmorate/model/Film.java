@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 @Value
 @Builder(toBuilder = true)
-public class Film {
+public class Film implements Identifiable {
     long id;
     @NotBlank
     String name;

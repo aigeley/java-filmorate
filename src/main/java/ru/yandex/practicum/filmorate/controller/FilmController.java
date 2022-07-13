@@ -26,6 +26,7 @@ public class FilmController extends ItemController<Film> {
         return super.getAll();
     }
 
+    @Override
     @PostMapping(BASE_PATH)
     public Film add(@Valid @RequestBody Film film) {
         long filmId = film.getId();
@@ -34,17 +35,21 @@ public class FilmController extends ItemController<Film> {
         Film filmToAdd;
 
         if (isIdMissing) {
-            filmToAdd = film.toBuilder().id(filmIdToAdd).build();
+            filmToAdd = film
+                    .toBuilder()
+                    .id(filmIdToAdd)
+                    .build();
         } else {
             filmToAdd = film;
         }
 
-        return super.add(filmIdToAdd, filmToAdd);
+        return super.add(filmToAdd);
     }
 
+    @Override
     @PutMapping(BASE_PATH)
     public Film update(@Valid @RequestBody Film film) {
-        return super.update(film.getId(), film);
+        return super.update(film);
     }
 
     @Override

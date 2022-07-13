@@ -3,15 +3,15 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.controller.exception.ItemAlreadyExistsException;
 import ru.yandex.practicum.filmorate.controller.exception.ItemNotFoundException;
+import ru.yandex.practicum.filmorate.model.Identifiable;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
-public abstract class ItemController<T> {
+public abstract class ItemController<T extends Identifiable> {
     protected final String path;
     protected final String itemName;
     private final Map<Long, T> items;
@@ -28,11 +28,13 @@ public abstract class ItemController<T> {
         return lastId.incrementAndGet();
     }
 
-    protected Collection<T> getAll() {
+    public Collection<T> getAll() {
         return items.values();
     }
 
-    protected T add(long itemId, T item) {
+    public T add(T item) {
+        long itemId = item.getId();
+
         if (items.containsKey(itemId)) {
             throw new ItemAlreadyExistsException(itemId, itemName);
         }
@@ -42,7 +44,9 @@ public abstract class ItemController<T> {
         return item;
     }
 
-    protected T update(long itemId, T item) {
+    public T update(T item) {
+        long itemId = item.getId();
+
         if (itemId == 0 || !items.containsKey(itemId)) {
             throw new ItemNotFoundException(itemId, itemName);
         }
@@ -52,7 +56,7 @@ public abstract class ItemController<T> {
         return item;
     }
 
-    protected void deleteAll() {
+    public void deleteAll() {
         items.clear();
         log.info("DELETE: " + path);
     }

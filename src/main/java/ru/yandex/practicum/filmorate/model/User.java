@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 @Value
 @Builder(toBuilder = true)
-public class User {
+public class User implements Identifiable {
     long id;
     @Email
     @NotBlank
