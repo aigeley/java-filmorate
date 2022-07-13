@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.controller;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.controller.validation.ReleaseDateValidator;
@@ -22,7 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 
-@WebMvcTest(controllers = FilmController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class FilmControllerTest extends ItemControllerTest {
     protected final Film testFilm;
     protected final Type listType;

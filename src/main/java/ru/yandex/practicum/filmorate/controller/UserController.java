@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.ItemStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -16,8 +17,8 @@ public class UserController extends ItemController<User> {
     public static final String BASE_PATH = "/users";
     public static final String ITEM_NAME = "пользователь";
 
-    protected UserController() {
-        super(BASE_PATH, ITEM_NAME);
+    protected UserController(ItemStorage<User> itemStorage) {
+        super(BASE_PATH, ITEM_NAME, itemStorage);
     }
 
     @Override
@@ -31,7 +32,7 @@ public class UserController extends ItemController<User> {
     public User add(@Valid @RequestBody User user) {
         long userId = user.getId();
         boolean isIdMissing = userId == 0;
-        long userIdToAdd = isIdMissing ? getNextId() : userId; //если id не присвоен извне, то присваиваем сами
+        long userIdToAdd = isIdMissing ? itemStorage.getNextId() : userId; //если id не присвоен извне, то присваиваем сами
         String userName = user.getName();
         boolean isNameMissing = userName == null || userName.isBlank();
         String userNameToAdd = isNameMissing ? user.getLogin() : userName; //если имя пустое, то берём логин

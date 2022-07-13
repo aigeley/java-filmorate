@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.ItemStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -16,8 +17,8 @@ public class FilmController extends ItemController<Film> {
     public static final String BASE_PATH = "/films";
     public static final String ITEM_NAME = "фильм";
 
-    protected FilmController() {
-        super(BASE_PATH, ITEM_NAME);
+    protected FilmController(ItemStorage<Film> itemStorage) {
+        super(BASE_PATH, ITEM_NAME, itemStorage);
     }
 
     @Override
@@ -31,7 +32,7 @@ public class FilmController extends ItemController<Film> {
     public Film add(@Valid @RequestBody Film film) {
         long filmId = film.getId();
         boolean isIdMissing = filmId == 0;
-        long filmIdToAdd = isIdMissing ? getNextId() : filmId; //если id не присвоен извне, то присваиваем сами
+        long filmIdToAdd = isIdMissing ? itemStorage.getNextId() : filmId; //если id не присвоен извне, то присваиваем сами
         Film filmToAdd;
 
         if (isIdMissing) {
