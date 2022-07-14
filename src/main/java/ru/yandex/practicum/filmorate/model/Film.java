@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
 import lombok.Value;
-import ru.yandex.practicum.filmorate.controller.validation.ReleaseDate;
+import ru.yandex.practicum.filmorate.model.validation.ReleaseDate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller.exception;
+package ru.yandex.practicum.filmorate.service.exception;
 
 public class ItemAlreadyExistsException extends RuntimeException {
     public ItemAlreadyExistsException(long itemId, String itemName) {

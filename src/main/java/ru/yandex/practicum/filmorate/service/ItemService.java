@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.yandex.practicum.filmorate.controller.exception.ItemAlreadyExistsException;
-import ru.yandex.practicum.filmorate.controller.exception.ItemNotFoundException;
 import ru.yandex.practicum.filmorate.model.Identifiable;
+import ru.yandex.practicum.filmorate.service.exception.ItemAlreadyExistsException;
+import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 import ru.yandex.practicum.filmorate.storage.ItemStorage;
 
 import java.util.Collection;

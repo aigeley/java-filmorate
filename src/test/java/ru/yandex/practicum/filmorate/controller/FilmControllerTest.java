@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.util.NestedServletException;
-import ru.yandex.practicum.filmorate.controller.validation.ReleaseDateValidator;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
+import ru.yandex.practicum.filmorate.service.exception.ItemAlreadyExistsException;
+import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -18,7 +19,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
@@ -48,7 +48,9 @@ class FilmControllerTest extends ItemControllerTest {
 
     @Test
     void add_shouldReturn200AndSameItem() throws Exception {
-        String responseText = performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        String responseText = performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk())
+                .getResponse()
+                .getContentAsString();
         Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(testFilm, createdFilm);
     }
@@ -68,17 +70,21 @@ class FilmControllerTest extends ItemControllerTest {
                 .releaseDate(ReleaseDateValidator.FIRST_FILM_SHOW)
                 .build();
 
-        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
+        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
+                .getResponse()
+                .getContentAsString();
         Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(filmToAdd, createdFilm);
     }
 
     @Test
-    void add_idAlreadyExists_shouldReturn500() throws Exception {
+    void add_idAlreadyExists_shouldReturn409() throws Exception {
         performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        assertThrows(
-                NestedServletException.class,
-                () -> performPost(path, objectMapper.writeValueAsString(testFilm), status().isInternalServerError())
+        assertEquals(
+                ItemAlreadyExistsException.class,
+                performPost(path, objectMapper.writeValueAsString(testFilm), status().isConflict())
+                        .getResolvedException()
+                        .getClass()
         );
     }
 
@@ -89,7 +95,9 @@ class FilmControllerTest extends ItemControllerTest {
                 .id(0)
                 .build();
 
-        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
+        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
+                .getResponse()
+                .getContentAsString();
         Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertNotEquals(0, createdFilm.getId());
     }
@@ -164,7 +172,9 @@ class FilmControllerTest extends ItemControllerTest {
                 .duration(102)
                 .build();
 
-        String responseText = performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isOk());
+        String responseText = performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isOk())
+                .getResponse()
+                .getContentAsString();
         Film updatedFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(filmToUpdate, updatedFilm);
     }
@@ -176,9 +186,11 @@ class FilmControllerTest extends ItemControllerTest {
                 .id(0)
                 .build();
 
-        assertThrows(
-                NestedServletException.class,
-                () -> performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
+        assertEquals(
+                ItemNotFoundException.class,
+                performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
         );
     }
 
@@ -189,9 +201,11 @@ class FilmControllerTest extends ItemControllerTest {
                 .id(-1)
                 .build();
 
-        assertThrows(
-                NestedServletException.class,
-                () -> performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
+        assertEquals(
+                ItemNotFoundException.class,
+                performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
         );
     }
 
@@ -207,7 +221,9 @@ class FilmControllerTest extends ItemControllerTest {
         performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
         performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
 
-        String responseText = performGet(path, status().isOk());
+        String responseText = performGet(path, status().isOk())
+                .getResponse()
+                .getContentAsString();
         List<Film> createdFilms = objectMapper.readValue(responseText, listType);
         createdFilms.sort(Comparator.comparingLong(Film::getId));
         assertEquals(filmsToAdd, createdFilms);
@@ -224,7 +240,9 @@ class FilmControllerTest extends ItemControllerTest {
         performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
         performDelete(path, status().isOk());
 
-        String responseText = performGet(path, status().isOk());
+        String responseText = performGet(path, status().isOk())
+                .getResponse()
+                .getContentAsString();
         List<Film> createdFilms = objectMapper.readValue(responseText, listType);
         assertTrue(createdFilms.isEmpty());
     }

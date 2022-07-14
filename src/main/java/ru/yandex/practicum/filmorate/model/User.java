@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
 import lombok.Value;
-import ru.yandex.practicum.filmorate.controller.validation.Login;
+import ru.yandex.practicum.filmorate.model.validation.Login;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;

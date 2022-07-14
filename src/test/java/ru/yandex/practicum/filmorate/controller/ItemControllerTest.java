@@ -29,8 +29,8 @@ public abstract class ItemControllerTest {
         performDelete(path, status().isOk());
     }
 
-    protected String performPost(String Path, String jsonToSend, ResultMatcher expectedStatus) throws Exception {
-        MvcResult mvcResult = mockMvc
+    protected MvcResult performPost(String Path, String jsonToSend, ResultMatcher expectedStatus) throws Exception {
+        return mockMvc
                 .perform(
                         post(Path)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -38,12 +38,10 @@ public abstract class ItemControllerTest {
                 )
                 .andExpect(expectedStatus)
                 .andReturn();
-
-        return mvcResult.getResponse().getContentAsString();
     }
 
-    protected String performPut(String Path, String jsonToSend, ResultMatcher expectedStatus) throws Exception {
-        MvcResult mvcResult = mockMvc
+    protected MvcResult performPut(String Path, String jsonToSend, ResultMatcher expectedStatus) throws Exception {
+        return mockMvc
                 .perform(
                         put(Path)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -51,25 +49,19 @@ public abstract class ItemControllerTest {
                 )
                 .andExpect(expectedStatus)
                 .andReturn();
-
-        return mvcResult.getResponse().getContentAsString();
     }
 
-    protected String performGet(String Path, ResultMatcher expectedStatus) throws Exception {
-        MvcResult mvcResult = mockMvc
+    protected MvcResult performGet(String Path, ResultMatcher expectedStatus) throws Exception {
+        return mockMvc
                 .perform(get(Path))
                 .andExpect(expectedStatus)
                 .andReturn();
-
-        return mvcResult.getResponse().getContentAsString();
     }
 
-    protected String performDelete(String Path, ResultMatcher expectedStatus) throws Exception {
-        MvcResult mvcResult = mockMvc
+    protected MvcResult performDelete(String Path, ResultMatcher expectedStatus) throws Exception {
+        return mockMvc
                 .perform(delete(Path))
                 .andExpect(expectedStatus)
                 .andReturn();
-
-        return mvcResult.getResponse().getContentAsString();
     }
 }
