@@ -1,17 +1,16 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.controller.validation.ReleaseDateValidator;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -28,10 +27,11 @@ import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 @AutoConfigureMockMvc
 class FilmControllerTest extends ItemControllerTest {
     protected final Film testFilm;
-    protected final Type listType;
+    protected final TypeReference<List<Film>> listType;
 
-    public FilmControllerTest(@Autowired MockMvc mockMvc) {
-        super(mockMvc, BASE_PATH);
+    @Autowired
+    public FilmControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
+        super(mockMvc, BASE_PATH, objectMapper);
 
         this.testFilm = Film
                 .builder()
@@ -42,14 +42,14 @@ class FilmControllerTest extends ItemControllerTest {
                 .duration(136)
                 .build();
 
-        this.listType = new TypeToken<List<Film>>() {
-        }.getType();
+        this.listType = new TypeReference<>() {
+        };
     }
 
     @Test
     void add_shouldReturn200AndSameItem() throws Exception {
-        String responseText = performPost(path, gson.toJson(testFilm), status().isOk());
-        Film createdFilm = gson.fromJson(responseText, Film.class);
+        String responseText = performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(testFilm, createdFilm);
     }
 
@@ -68,17 +68,17 @@ class FilmControllerTest extends ItemControllerTest {
                 .releaseDate(ReleaseDateValidator.FIRST_FILM_SHOW)
                 .build();
 
-        String responseText = performPost(path, gson.toJson(filmToAdd), status().isOk());
-        Film createdFilm = gson.fromJson(responseText, Film.class);
+        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
+        Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(filmToAdd, createdFilm);
     }
 
     @Test
     void add_idAlreadyExists_shouldReturn500() throws Exception {
-        performPost(path, gson.toJson(testFilm), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
         assertThrows(
                 NestedServletException.class,
-                () -> performPost(path, gson.toJson(testFilm), status().isInternalServerError())
+                () -> performPost(path, objectMapper.writeValueAsString(testFilm), status().isInternalServerError())
         );
     }
 
@@ -89,8 +89,8 @@ class FilmControllerTest extends ItemControllerTest {
                 .id(0)
                 .build();
 
-        String responseText = performPost(path, gson.toJson(filmToAdd), status().isOk());
-        Film createdFilm = gson.fromJson(responseText, Film.class);
+        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
+        Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertNotEquals(0, createdFilm.getId());
     }
 
@@ -101,7 +101,7 @@ class FilmControllerTest extends ItemControllerTest {
                 .name("")
                 .build();
 
-        performPost(path, gson.toJson(filmToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
@@ -119,7 +119,7 @@ class FilmControllerTest extends ItemControllerTest {
                 )
                 .build();
 
-        performPost(path, gson.toJson(filmToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
@@ -129,7 +129,7 @@ class FilmControllerTest extends ItemControllerTest {
                 .releaseDate(LocalDate.of(1895, 12, 27))
                 .build();
 
-        performPost(path, gson.toJson(filmToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
@@ -139,7 +139,7 @@ class FilmControllerTest extends ItemControllerTest {
                 .duration(-136)
                 .build();
 
-        performPost(path, gson.toJson(filmToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
@@ -149,12 +149,12 @@ class FilmControllerTest extends ItemControllerTest {
                 .duration(0)
                 .build();
 
-        performPost(path, gson.toJson(filmToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_update_shouldReturn200AndUpdatedItem() throws Exception {
-        performPost(path, gson.toJson(testFilm), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
 
         Film filmToUpdate = testFilm
                 .toBuilder()
@@ -164,8 +164,8 @@ class FilmControllerTest extends ItemControllerTest {
                 .duration(102)
                 .build();
 
-        String responseText = performPut(path, gson.toJson(filmToUpdate), status().isOk());
-        Film updatedFilm = gson.fromJson(responseText, Film.class);
+        String responseText = performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isOk());
+        Film updatedFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(filmToUpdate, updatedFilm);
     }
 
@@ -178,7 +178,7 @@ class FilmControllerTest extends ItemControllerTest {
 
         assertThrows(
                 NestedServletException.class,
-                () -> performPut(path, gson.toJson(filmToUpdate), status().isInternalServerError())
+                () -> performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
         );
     }
 
@@ -191,7 +191,7 @@ class FilmControllerTest extends ItemControllerTest {
 
         assertThrows(
                 NestedServletException.class,
-                () -> performPut(path, gson.toJson(filmToUpdate), status().isInternalServerError())
+                () -> performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
         );
     }
 
@@ -204,11 +204,11 @@ class FilmControllerTest extends ItemControllerTest {
 
         List<Film> filmsToAdd = Arrays.asList(testFilm, filmToAdd);
 
-        performPost(path, gson.toJson(testFilm), status().isOk());
-        performPost(path, gson.toJson(filmToAdd), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
 
         String responseText = performGet(path, status().isOk());
-        List<Film> createdFilms = gson.fromJson(responseText, listType);
+        List<Film> createdFilms = objectMapper.readValue(responseText, listType);
         createdFilms.sort(Comparator.comparingLong(Film::getId));
         assertEquals(filmsToAdd, createdFilms);
     }
@@ -220,12 +220,12 @@ class FilmControllerTest extends ItemControllerTest {
                 .id(testFilm.getId() + 1)
                 .build();
 
-        performPost(path, gson.toJson(testFilm), status().isOk());
-        performPost(path, gson.toJson(filmToAdd), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
         performDelete(path, status().isOk());
 
         String responseText = performGet(path, status().isOk());
-        List<Film> createdFilms = gson.fromJson(responseText, listType);
+        List<Film> createdFilms = objectMapper.readValue(responseText, listType);
         assertTrue(createdFilms.isEmpty());
     }
 }

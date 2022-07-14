@@ -1,16 +1,15 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -27,10 +26,11 @@ import static ru.yandex.practicum.filmorate.controller.UserController.BASE_PATH;
 @AutoConfigureMockMvc
 class UserControllerTest extends ItemControllerTest {
     protected final User testUser;
-    protected final Type listType;
+    protected final TypeReference<List<User>> listType;
 
-    public UserControllerTest(@Autowired MockMvc mockMvc) {
-        super(mockMvc, BASE_PATH);
+    @Autowired
+    public UserControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
+        super(mockMvc, BASE_PATH, objectMapper);
 
         this.testUser = User
                 .builder()
@@ -41,14 +41,14 @@ class UserControllerTest extends ItemControllerTest {
                 .birthday(LocalDate.of(1962, 3, 11))
                 .build();
 
-        this.listType = new TypeToken<List<User>>() {
-        }.getType();
+        this.listType = new TypeReference<>() {
+        };
     }
 
     @Test
     void add_shouldReturn200AndSameItem() throws Exception {
-        String responseText = performPost(path, gson.toJson(testUser), status().isOk());
-        User createdUser = gson.fromJson(responseText, User.class);
+        String responseText = performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        User createdUser = objectMapper.readValue(responseText, User.class);
         assertEquals(testUser, createdUser);
     }
 
@@ -62,8 +62,8 @@ class UserControllerTest extends ItemControllerTest {
                 .birthday(LocalDate.now())
                 .build();
 
-        String responseText = performPost(path, gson.toJson(userToAdd), status().isOk());
-        User createdUser = gson.fromJson(responseText, User.class);
+        String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk());
+        User createdUser = objectMapper.readValue(responseText, User.class);
         assertNotEquals(0, createdUser.getId());
         assertEquals(userToAdd.getLogin(), createdUser.getName());
     }
@@ -75,7 +75,7 @@ class UserControllerTest extends ItemControllerTest {
                 .email("TAndersonmetacortex.com")
                 .build();
 
-        performPost(path, gson.toJson(userToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
@@ -85,7 +85,7 @@ class UserControllerTest extends ItemControllerTest {
                 .email("")
                 .build();
 
-        performPost(path, gson.toJson(userToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
@@ -95,7 +95,7 @@ class UserControllerTest extends ItemControllerTest {
                 .login("N e o")
                 .build();
 
-        performPost(path, gson.toJson(userToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
@@ -105,7 +105,7 @@ class UserControllerTest extends ItemControllerTest {
                 .login("")
                 .build();
 
-        performPost(path, gson.toJson(userToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
@@ -115,12 +115,12 @@ class UserControllerTest extends ItemControllerTest {
                 .birthday(LocalDate.of(2062, 3, 11))
                 .build();
 
-        performPost(path, gson.toJson(userToAdd), status().isBadRequest());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_update_shouldReturn200AndUpdatedItem() throws Exception {
-        performPost(path, gson.toJson(testUser), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
 
         User userToUpdate = testUser
                 .toBuilder()
@@ -130,13 +130,13 @@ class UserControllerTest extends ItemControllerTest {
                 .birthday(LocalDate.of(1960, 3, 11))
                 .build();
 
-        String responseText = performPut(path, gson.toJson(userToUpdate), status().isOk());
-        User updatedUser = gson.fromJson(responseText, User.class);
+        String responseText = performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isOk());
+        User updatedUser = objectMapper.readValue(responseText, User.class);
         assertEquals(userToUpdate, updatedUser);
     }
 
     @Test
-    void update_idIsMissing_shouldReturn500() throws Exception {
+    void update_idIsMissing_shouldReturn500() {
         User userToUpdate = testUser
                 .toBuilder()
                 .id(0)
@@ -144,12 +144,12 @@ class UserControllerTest extends ItemControllerTest {
 
         assertThrows(
                 NestedServletException.class,
-                () -> performPut(path, gson.toJson(userToUpdate), status().isInternalServerError())
+                () -> performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isInternalServerError())
         );
     }
 
     @Test
-    void update_idNotFound_shouldReturn500() throws Exception {
+    void update_idNotFound_shouldReturn500() {
         User userToUpdate = testUser
                 .toBuilder()
                 .id(-1)
@@ -157,7 +157,7 @@ class UserControllerTest extends ItemControllerTest {
 
         assertThrows(
                 NestedServletException.class,
-                () -> performPut(path, gson.toJson(userToUpdate), status().isInternalServerError())
+                () -> performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isInternalServerError())
         );
     }
 
@@ -170,11 +170,11 @@ class UserControllerTest extends ItemControllerTest {
 
         List<User> usersToAdd = Arrays.asList(testUser, userToAdd);
 
-        performPost(path, gson.toJson(testUser), status().isOk());
-        performPost(path, gson.toJson(userToAdd), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk());
 
         String responseText = performGet(path, status().isOk());
-        List<User> createdUsers = gson.fromJson(responseText, listType);
+        List<User> createdUsers = objectMapper.readValue(responseText, listType);
         createdUsers.sort(Comparator.comparingLong(User::getId));
         assertEquals(usersToAdd, createdUsers);
     }
@@ -186,12 +186,12 @@ class UserControllerTest extends ItemControllerTest {
                 .id(testUser.getId() + 1)
                 .build();
 
-        performPost(path, gson.toJson(testUser), status().isOk());
-        performPost(path, gson.toJson(userToAdd), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk());
         performDelete(path, status().isOk());
 
         String responseText = performGet(path, status().isOk());
-        List<User> createdUsers = gson.fromJson(responseText, listType);
+        List<User> createdUsers = objectMapper.readValue(responseText, listType);
         assertTrue(createdUsers.isEmpty());
     }
 }

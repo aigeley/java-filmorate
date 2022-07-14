@@ -1,12 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
-import ru.yandex.practicum.filmorate.util.JsonConverter;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -17,12 +16,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public abstract class ItemControllerTest {
     private final MockMvc mockMvc;
     protected final String path;
-    protected final Gson gson;
+    protected final ObjectMapper objectMapper;
 
-    public ItemControllerTest(MockMvc mockMvc, String path) {
+    public ItemControllerTest(MockMvc mockMvc, String path, ObjectMapper objectMapper) {
         this.mockMvc = mockMvc;
         this.path = path;
-        this.gson = JsonConverter.getGson();
+        this.objectMapper = objectMapper;
     }
 
     @BeforeEach
