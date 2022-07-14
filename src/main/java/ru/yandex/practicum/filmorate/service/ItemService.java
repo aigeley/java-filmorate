@@ -18,6 +18,14 @@ public abstract class ItemService<T extends Identifiable> {
         this.itemStorage = itemStorage;
     }
 
+    public T get(long itemId) {
+        if (itemId == 0 || !itemStorage.isIdExists(itemId)) {
+            throw new ItemNotFoundException(itemId, itemName);
+        }
+
+        return itemStorage.get(itemId);
+    }
+
     public Collection<T> getAll() {
         return itemStorage.getAll();
     }

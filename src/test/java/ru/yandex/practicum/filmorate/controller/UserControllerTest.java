@@ -134,7 +134,37 @@ class UserControllerTest extends ItemControllerTest {
     }
 
     @Test
-    void add_get_shouldReturn200AndListOfAllItems() throws Exception {
+    void add_get_shouldReturn200AndSameItem() throws Exception {
+        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        String responseText = performGet(path + "/" + testUser.getId(), status().isOk())
+                .getResponse()
+                .getContentAsString();
+        User createdUser = objectMapper.readValue(responseText, User.class);
+        assertEquals(testUser, createdUser);
+    }
+
+    @Test
+    void get_idIsMissing_shouldReturn500() throws Exception {
+        assertEquals(
+                ItemNotFoundException.class,
+                performGet(path + "/0", status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
+        );
+    }
+
+    @Test
+    void get_idNotFound_shouldReturn500() throws Exception {
+        assertEquals(
+                ItemNotFoundException.class,
+                performGet(path + "/-1", status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
+        );
+    }
+
+    @Test
+    void add_getAll_shouldReturn200AndListOfAllItems() throws Exception {
         User userToAdd = testUser
                 .toBuilder()
                 .id(testUser.getId() + 1)

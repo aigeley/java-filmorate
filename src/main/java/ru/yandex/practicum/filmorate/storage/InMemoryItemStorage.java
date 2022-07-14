@@ -22,6 +22,11 @@ public abstract class InMemoryItemStorage<T extends Identifiable> implements Ite
     }
 
     @Override
+    public T get(long itemId) {
+        return items.get(itemId);
+    }
+
+    @Override
     public Collection<T> getAll() {
         return items.values();
     }

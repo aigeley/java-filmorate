@@ -210,7 +210,37 @@ class FilmControllerTest extends ItemControllerTest {
     }
 
     @Test
-    void add_get_shouldReturn200AndListOfAllItems() throws Exception {
+    void add_get_shouldReturn200AndSameItem() throws Exception {
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        String responseText = performGet(path + "/" + testFilm.getId(), status().isOk())
+                .getResponse()
+                .getContentAsString();
+        Film createdFilm = objectMapper.readValue(responseText, Film.class);
+        assertEquals(testFilm, createdFilm);
+    }
+
+    @Test
+    void get_idIsMissing_shouldReturn500() throws Exception {
+        assertEquals(
+                ItemNotFoundException.class,
+                performGet(path + "/0", status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
+        );
+    }
+
+    @Test
+    void get_idNotFound_shouldReturn500() throws Exception {
+        assertEquals(
+                ItemNotFoundException.class,
+                performGet(path + "/-1", status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
+        );
+    }
+
+    @Test
+    void add_getAll_shouldReturn200AndListOfAllItems() throws Exception {
         Film filmToAdd = testFilm
                 .toBuilder()
                 .id(testFilm.getId() + 1)
@@ -230,7 +260,7 @@ class FilmControllerTest extends ItemControllerTest {
     }
 
     @Test
-    void add_delete_get_shouldReturn200AndEmptyList() throws Exception {
+    void add_deleteAll_getAll_shouldReturn200AndEmptyList() throws Exception {
         Film filmToAdd = testFilm
                 .toBuilder()
                 .id(testFilm.getId() + 1)
