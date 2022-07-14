@@ -1,53 +1,40 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
-import ru.yandex.practicum.filmorate.controller.exception.ItemAlreadyExistsException;
-import ru.yandex.practicum.filmorate.controller.exception.ItemNotFoundException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.model.Identifiable;
-import ru.yandex.practicum.filmorate.storage.ItemStorage;
+import ru.yandex.practicum.filmorate.service.ItemService;
 
+import javax.validation.Valid;
 import java.util.Collection;
 
-@Slf4j
 public abstract class ItemController<T extends Identifiable> {
-    protected final String path;
-    protected final String itemName;
-    protected final ItemStorage<T> itemStorage;
+    ItemService<T> itemService;
 
-    protected ItemController(String path, String itemName, ItemStorage<T> itemStorage) {
-        this.path = path;
-        this.itemName = itemName;
-        this.itemStorage = itemStorage;
+    protected ItemController(ItemService<T> itemService) {
+        this.itemService = itemService;
     }
 
+    @GetMapping
     public Collection<T> getAll() {
-        return itemStorage.getAll();
+        return itemService.getAll();
     }
 
-    public T add(T item) {
-        long itemId = item.getId();
-
-        if (itemStorage.isIdExists(itemId)) {
-            throw new ItemAlreadyExistsException(itemId, itemName);
-        }
-
-        log.info("POST: " + item);
-        return itemStorage.add(item);
+    @PostMapping
+    public T add(@Valid @RequestBody T item) {
+        return itemService.add(item);
     }
 
-    public T update(T item) {
-        long itemId = item.getId();
-
-        if (itemId == 0 || !itemStorage.isIdExists(itemId)) {
-            throw new ItemNotFoundException(itemId, itemName);
-        }
-
-        log.info("PUT: " + item);
-        return itemStorage.update(item);
+    @PutMapping
+    public T update(@Valid @RequestBody T item) {
+        return itemService.update(item);
     }
 
+    @DeleteMapping
     public void deleteAll() {
-        log.info("DELETE: " + path);
-        itemStorage.deleteAll();
+        itemService.deleteAll();
     }
 }
