@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.exception.ItemAlreadyExistsException;
 import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 
 import java.time.LocalDate;
@@ -24,34 +23,27 @@ import static ru.yandex.practicum.filmorate.controller.UserController.BASE_PATH;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserControllerTest extends ItemControllerTest {
-    protected final User testUser;
-    protected final TypeReference<List<User>> listType;
+class UserControllerTest extends ItemControllerTest<User> {
+    private final User testUser;
 
     @Autowired
     public UserControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
-        super(mockMvc, BASE_PATH, objectMapper);
+        super(mockMvc,
+                BASE_PATH,
+                objectMapper,
+                User
+                        .builder()
+                        .id(777)
+                        .email("TAnderson@metacortex.com")
+                        .login("Neo")
+                        .name("Thomas Anderson")
+                        .birthday(LocalDate.of(1962, 3, 11))
+                        .build(),
+                User.class);
 
-        this.testUser = User
-                .builder()
-                .id(777)
-                .email("TAnderson@metacortex.com")
-                .login("Neo")
-                .name("Thomas Anderson")
-                .birthday(LocalDate.of(1962, 3, 11))
-                .build();
-
+        this.testUser = this.testItem;
         this.listType = new TypeReference<>() {
         };
-    }
-
-    @Test
-    void add_shouldReturn200AndSameItem() throws Exception {
-        String responseText = performPost(path, objectMapper.writeValueAsString(testUser), status().isOk())
-                .getResponse()
-                .getContentAsString();
-        User createdUser = objectMapper.readValue(responseText, User.class);
-        assertEquals(testUser, createdUser);
     }
 
     @Test
@@ -70,17 +62,6 @@ class UserControllerTest extends ItemControllerTest {
         User createdUser = objectMapper.readValue(responseText, User.class);
         assertNotEquals(0, createdUser.getId());
         assertEquals(userToAdd.getLogin(), createdUser.getName());
-    }
-
-    @Test
-    void add_idAlreadyExists_shouldReturn409() throws Exception {
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        assertEquals(
-                ItemAlreadyExistsException.class,
-                performPost(path, objectMapper.writeValueAsString(testUser), status().isConflict())
-                        .getResolvedException()
-                        .getClass()
-        );
     }
 
     @Test
@@ -131,36 +112,6 @@ class UserControllerTest extends ItemControllerTest {
                 .build();
 
         performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
-    }
-
-    @Test
-    void add_get_shouldReturn200AndSameItem() throws Exception {
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        String responseText = performGet(path + "/" + testUser.getId(), status().isOk())
-                .getResponse()
-                .getContentAsString();
-        User createdUser = objectMapper.readValue(responseText, User.class);
-        assertEquals(testUser, createdUser);
-    }
-
-    @Test
-    void get_idIsMissing_shouldReturn500() throws Exception {
-        assertEquals(
-                ItemNotFoundException.class,
-                performGet(path + "/0", status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
-    }
-
-    @Test
-    void get_idNotFound_shouldReturn500() throws Exception {
-        assertEquals(
-                ItemNotFoundException.class,
-                performGet(path + "/-1", status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
     }
 
     @Test

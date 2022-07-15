@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
-import ru.yandex.practicum.filmorate.service.exception.ItemAlreadyExistsException;
 import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 
 import java.time.LocalDate;
@@ -25,34 +24,27 @@ import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class FilmControllerTest extends ItemControllerTest {
-    protected final Film testFilm;
-    protected final TypeReference<List<Film>> listType;
+class FilmControllerTest extends ItemControllerTest<Film> {
+    private final Film testFilm;
 
     @Autowired
     public FilmControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
-        super(mockMvc, BASE_PATH, objectMapper);
+        super(mockMvc,
+                BASE_PATH,
+                objectMapper,
+                Film
+                        .builder()
+                        .id(666)
+                        .name("The Matrix")
+                        .description("Wake up, Neo...")
+                        .releaseDate(LocalDate.of(1999, 3, 24))
+                        .duration(136)
+                        .build(),
+                Film.class);
 
-        this.testFilm = Film
-                .builder()
-                .id(666)
-                .name("The Matrix")
-                .description("Wake up, Neo...")
-                .releaseDate(LocalDate.of(1999, 3, 24))
-                .duration(136)
-                .build();
-
+        this.testFilm = this.testItem;
         this.listType = new TypeReference<>() {
         };
-    }
-
-    @Test
-    void add_shouldReturn200AndSameItem() throws Exception {
-        String responseText = performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk())
-                .getResponse()
-                .getContentAsString();
-        Film createdFilm = objectMapper.readValue(responseText, Film.class);
-        assertEquals(testFilm, createdFilm);
     }
 
     @Test
@@ -75,17 +67,6 @@ class FilmControllerTest extends ItemControllerTest {
                 .getContentAsString();
         Film createdFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(filmToAdd, createdFilm);
-    }
-
-    @Test
-    void add_idAlreadyExists_shouldReturn409() throws Exception {
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        assertEquals(
-                ItemAlreadyExistsException.class,
-                performPost(path, objectMapper.writeValueAsString(testFilm), status().isConflict())
-                        .getResolvedException()
-                        .getClass()
-        );
     }
 
     @Test
@@ -204,36 +185,6 @@ class FilmControllerTest extends ItemControllerTest {
         assertEquals(
                 ItemNotFoundException.class,
                 performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
-    }
-
-    @Test
-    void add_get_shouldReturn200AndSameItem() throws Exception {
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        String responseText = performGet(path + "/" + testFilm.getId(), status().isOk())
-                .getResponse()
-                .getContentAsString();
-        Film createdFilm = objectMapper.readValue(responseText, Film.class);
-        assertEquals(testFilm, createdFilm);
-    }
-
-    @Test
-    void get_idIsMissing_shouldReturn500() throws Exception {
-        assertEquals(
-                ItemNotFoundException.class,
-                performGet(path + "/0", status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
-    }
-
-    @Test
-    void get_idNotFound_shouldReturn500() throws Exception {
-        assertEquals(
-                ItemNotFoundException.class,
-                performGet(path + "/-1", status().isInternalServerError())
                         .getResolvedException()
                         .getClass()
         );
