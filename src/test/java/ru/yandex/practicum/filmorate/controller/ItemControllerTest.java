@@ -12,16 +12,20 @@ import ru.yandex.practicum.filmorate.model.Identifiable;
 import ru.yandex.practicum.filmorate.service.exception.ItemAlreadyExistsException;
 import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class ItemControllerTest<T extends Identifiable> {
+public abstract class ItemControllerTest<T extends Identifiable<T>> {
     private final MockMvc mockMvc;
     protected final String path;
     protected final ObjectMapper objectMapper;
@@ -89,6 +93,16 @@ public abstract class ItemControllerTest<T extends Identifiable> {
     }
 
     @Test
+    void add_idIsMissing_shouldReturn200WithNonZeroId() throws Exception {
+        T itemToAdd = testItem.withId(0);
+        String responseText = performPost(path, objectMapper.writeValueAsString(itemToAdd), status().isOk())
+                .getResponse()
+                .getContentAsString();
+        T createdItem = objectMapper.readValue(responseText, testItemClass);
+        assertNotEquals(0, createdItem.getId());
+    }
+
+    @Test
     void add_idAlreadyExists_shouldReturn409() throws Exception {
         performPost(path, objectMapper.writeValueAsString(testItem), status().isOk());
         assertEquals(
@@ -107,6 +121,55 @@ public abstract class ItemControllerTest<T extends Identifiable> {
                 .getContentAsString();
         T createdItem = objectMapper.readValue(responseText, testItemClass);
         assertEquals(testItem, createdItem);
+    }
+
+    @Test
+    void add_getAll_shouldReturn200AndListOfAllItems() throws Exception {
+        T itemToAdd = testItem.withId(testItem.getId() + 1);
+        List<T> itemsToAdd = Arrays.asList(testItem, itemToAdd);
+        performPost(path, objectMapper.writeValueAsString(testItem), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(itemToAdd), status().isOk());
+        String responseText = performGet(path, status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<T> createdItems = objectMapper.readValue(responseText, listType);
+        createdItems.sort(Comparator.comparingLong(T::getId));
+        assertEquals(itemsToAdd, createdItems);
+    }
+
+    @Test
+    void add_deleteAll_getAll_shouldReturn200AndEmptyList() throws Exception {
+        T itemToAdd = testItem.withId(testItem.getId() + 1);
+        performPost(path, objectMapper.writeValueAsString(testItem), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(itemToAdd), status().isOk());
+        performDelete(path, status().isOk());
+        String responseText = performGet(path, status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<T> createdItems = objectMapper.readValue(responseText, listType);
+        assertTrue(createdItems.isEmpty());
+    }
+
+    @Test
+    void update_idIsMissing_shouldReturn500() throws Exception {
+        T itemToUpdate = testItem.withId(0);
+        assertEquals(
+                ItemNotFoundException.class,
+                performPut(path, objectMapper.writeValueAsString(itemToUpdate), status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
+        );
+    }
+
+    @Test
+    void update_idNotFound_shouldReturn500() throws Exception {
+        T itemToUpdate = testItem.withId(-1);
+        assertEquals(
+                ItemNotFoundException.class,
+                performPut(path, objectMapper.writeValueAsString(itemToUpdate), status().isInternalServerError())
+                        .getResolvedException()
+                        .getClass()
+        );
     }
 
     @Test

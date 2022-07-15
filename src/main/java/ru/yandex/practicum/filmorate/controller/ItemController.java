@@ -12,7 +12,7 @@ import ru.yandex.practicum.filmorate.service.ItemService;
 import javax.validation.Valid;
 import java.util.Collection;
 
-public abstract class ItemController<T extends Identifiable> {
+public abstract class ItemController<T extends Identifiable<T>> {
     ItemService<T> itemService;
 
     protected ItemController(ItemService<T> itemService) {

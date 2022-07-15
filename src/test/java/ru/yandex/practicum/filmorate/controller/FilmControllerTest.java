@@ -9,16 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
-import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 
@@ -48,20 +42,48 @@ class FilmControllerTest extends ItemControllerTest<Film> {
     }
 
     @Test
-    void add_descriptionAndReleaseDateBoundaryValues_shouldReturn200() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .description(
-                        "Wake up, Neo... "
-                                + "The Matrix has you... "
-                                + "Follow the white rabbit. "
-                                + "Knock, knock, Neo. "
-                                + "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, "
-                                + "he discovers the shocking truth - 200!"
-                )
-                .releaseDate(ReleaseDateValidator.FIRST_FILM_SHOW)
-                .build();
+    void add_nameIsMissing_shouldReturn400() throws Exception {
+        Film filmToAdd = testFilm.withName("");
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+    }
 
+    @Test
+    void add_descriptionIs200Chars_shouldReturn200() throws Exception {
+        Film filmToAdd = testFilm.withDescription(
+                "Wake up, Neo... "
+                        + "The Matrix has you... "
+                        + "Follow the white rabbit. "
+                        + "Knock, knock, Neo. "
+                        + "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, "
+                        + "he discovers the shocking truth - 200!"
+        );
+
+        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
+                .getResponse()
+                .getContentAsString();
+        Film createdFilm = objectMapper.readValue(responseText, Film.class);
+        assertEquals(200, createdFilm.getDescription().length());
+        assertEquals(filmToAdd, createdFilm);
+    }
+
+    @Test
+    void add_descriptionIsLongerThan200Chars_shouldReturn400() throws Exception {
+        Film filmToAdd = testFilm.withDescription(
+                "Wake up, Neo... "
+                        + "The Matrix has you... "
+                        + "Follow the white rabbit. "
+                        + "Knock, knock, Neo. "
+                        + "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, "
+                        + "he discovers the shocking truth - the life he knows is the elaborate deception "
+                        + "of an evil cyber-intelligence."
+        );
+
+        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+    }
+
+    @Test
+    void add_releaseDateIsTheFirstFilmShow_shouldReturn200() throws Exception {
+        Film filmToAdd = testFilm.withReleaseDate(ReleaseDateValidator.FIRST_FILM_SHOW);
         String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
@@ -70,74 +92,20 @@ class FilmControllerTest extends ItemControllerTest<Film> {
     }
 
     @Test
-    void add_idIsMissing_shouldReturn200WithNonZeroId() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .id(0)
-                .build();
-
-        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
-                .getResponse()
-                .getContentAsString();
-        Film createdFilm = objectMapper.readValue(responseText, Film.class);
-        assertNotEquals(0, createdFilm.getId());
-    }
-
-    @Test
-    void add_nameIsMissing_shouldReturn400() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .name("")
-                .build();
-
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
-    }
-
-    @Test
-    void add_descriptionIsLongerThan200Chars_shouldReturn400() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .description(
-                        "Wake up, Neo... "
-                                + "The Matrix has you... "
-                                + "Follow the white rabbit. "
-                                + "Knock, knock, Neo. "
-                                + "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, "
-                                + "he discovers the shocking truth - the life he knows is the elaborate deception "
-                                + "of an evil cyber-intelligence."
-                )
-                .build();
-
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
-    }
-
-    @Test
     void add_releaseDateIsBeforeTheFirstFilmShow_shouldReturn400() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .releaseDate(LocalDate.of(1895, 12, 27))
-                .build();
-
+        Film filmToAdd = testFilm.withReleaseDate(LocalDate.of(1895, 12, 27));
         performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_durationIsNegative_shouldReturn400() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .duration(-136)
-                .build();
-
+        Film filmToAdd = testFilm.withDuration(-136);
         performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_durationIsZero_shouldReturn400() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .duration(0)
-                .build();
-
+        Film filmToAdd = testFilm.withDuration(0);
         performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
@@ -158,73 +126,5 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                 .getContentAsString();
         Film updatedFilm = objectMapper.readValue(responseText, Film.class);
         assertEquals(filmToUpdate, updatedFilm);
-    }
-
-    @Test
-    void update_idIsMissing_shouldReturn500() throws Exception {
-        Film filmToUpdate = testFilm
-                .toBuilder()
-                .id(0)
-                .build();
-
-        assertEquals(
-                ItemNotFoundException.class,
-                performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
-    }
-
-    @Test
-    void update_idNotFound_shouldReturn500() throws Exception {
-        Film filmToUpdate = testFilm
-                .toBuilder()
-                .id(-1)
-                .build();
-
-        assertEquals(
-                ItemNotFoundException.class,
-                performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
-    }
-
-    @Test
-    void add_getAll_shouldReturn200AndListOfAllItems() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .id(testFilm.getId() + 1)
-                .build();
-
-        List<Film> filmsToAdd = Arrays.asList(testFilm, filmToAdd);
-
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
-
-        String responseText = performGet(path, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        List<Film> createdFilms = objectMapper.readValue(responseText, listType);
-        createdFilms.sort(Comparator.comparingLong(Film::getId));
-        assertEquals(filmsToAdd, createdFilms);
-    }
-
-    @Test
-    void add_deleteAll_getAll_shouldReturn200AndEmptyList() throws Exception {
-        Film filmToAdd = testFilm
-                .toBuilder()
-                .id(testFilm.getId() + 1)
-                .build();
-
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk());
-        performDelete(path, status().isOk());
-
-        String responseText = performGet(path, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        List<Film> createdFilms = objectMapper.readValue(responseText, listType);
-        assertTrue(createdFilms.isEmpty());
     }
 }

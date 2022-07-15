@@ -12,46 +12,21 @@ public class UserService extends ItemService<User> {
         super(ITEM_NAME, itemStorage);
     }
 
-    @Override
-    public User add(User user) {
-        long userId = user.getId();
-        boolean isIdMissing = userId == 0;
-        long userIdToAdd = isIdMissing ? itemStorage.getNextId() : userId; //если id не задан извне, то присваиваем сами
+    private User getUserWithName(User user) {
         String userName = user.getName();
         boolean isNameMissing = userName == null || userName.isBlank();
-        String userNameToAdd = isNameMissing ? user.getLogin() : userName; //если имя пустое, то берём логин
-        boolean isUserRebuildNeeded = isIdMissing || isNameMissing;
-        User userToAdd;
+        return isNameMissing ? user.withName(user.getLogin()) : user;
+    }
 
-        if (isUserRebuildNeeded) {
-            userToAdd = user
-                    .toBuilder()
-                    .id(userIdToAdd)
-                    .name(userNameToAdd)
-                    .build();
-        } else {
-            userToAdd = user;
-        }
-
+    @Override
+    public User add(User user) {
+        User userToAdd = getUserWithName(user);
         return super.add(userToAdd);
     }
 
     @Override
     public User update(User user) {
-        String userName = user.getName();
-        boolean isNameMissing = userName == null || userName.isBlank();
-        String userNameToUpdate = isNameMissing ? user.getLogin() : userName; //если имя пустое, то берём логин
-        User userToUpdate;
-
-        if (isNameMissing) {
-            userToUpdate = user
-                    .toBuilder()
-                    .name(userNameToUpdate)
-                    .build();
-        } else {
-            userToUpdate = user;
-        }
-
+        User userToUpdate = getUserWithName(user);
         return super.update(userToUpdate);
     }
 }

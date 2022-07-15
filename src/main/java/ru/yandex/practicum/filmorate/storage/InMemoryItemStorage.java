@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class InMemoryItemStorage<T extends Identifiable> implements ItemStorage<T> {
+public abstract class InMemoryItemStorage<T extends Identifiable<T>> implements ItemStorage<T> {
     private final Map<Long, T> items;
     private final AtomicLong lastId;
 

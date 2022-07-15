@@ -8,16 +8,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.controller.UserController.BASE_PATH;
 
@@ -47,109 +41,53 @@ class UserControllerTest extends ItemControllerTest<User> {
     }
 
     @Test
-    void add_idAndNameAreMissing_birthdayIsCurrentDate_shouldReturn200WithNonZeroIdAndNameEqualsLogin()
-            throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .id(0)
-                .name("")
-                .birthday(LocalDate.now())
-                .build();
-
+    void add_nameIsMissing_shouldReturn200WithNameEqualsLogin() throws Exception {
+        User userToAdd = testUser.withName("");
         String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
         User createdUser = objectMapper.readValue(responseText, User.class);
-        assertNotEquals(0, createdUser.getId());
         assertEquals(userToAdd.getLogin(), createdUser.getName());
     }
 
     @Test
-    void add_emailWithoutAtSign_shouldReturn400() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .email("TAndersonmetacortex.com")
-                .build();
+    void add_birthdayIsCurrentDate_shouldReturn200() throws Exception {
+        User userToAdd = testUser.withBirthday(LocalDate.now());
+        String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk())
+                .getResponse()
+                .getContentAsString();
+        User createdUser = objectMapper.readValue(responseText, User.class);
+        assertEquals(userToAdd, createdUser);
+    }
 
+    @Test
+    void add_emailWithoutAtSign_shouldReturn400() throws Exception {
+        User userToAdd = testUser.withEmail("TAndersonmetacortex.com");
         performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_emailIsMissing_shouldReturn400() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .email("")
-                .build();
-
+        User userToAdd = testUser.withEmail("");
         performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_loginWithSpace_shouldReturn400() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .login("N e o")
-                .build();
-
+        User userToAdd = testUser.withLogin("N e o");
         performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_loginIsMissing_shouldReturn400() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .login("")
-                .build();
-
+        User userToAdd = testUser.withLogin("");
         performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_birthdayInFuture_shouldReturn400() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .birthday(LocalDate.of(2062, 3, 11))
-                .build();
-
+        User userToAdd = testUser.withBirthday(LocalDate.of(2062, 3, 11));
         performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
-    }
-
-    @Test
-    void add_getAll_shouldReturn200AndListOfAllItems() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .id(testUser.getId() + 1)
-                .build();
-
-        List<User> usersToAdd = Arrays.asList(testUser, userToAdd);
-
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk());
-
-        String responseText = performGet(path, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        List<User> createdUsers = objectMapper.readValue(responseText, listType);
-        createdUsers.sort(Comparator.comparingLong(User::getId));
-        assertEquals(usersToAdd, createdUsers);
-    }
-
-    @Test
-    void add_delete_get_shouldReturn200AndEmptyList() throws Exception {
-        User userToAdd = testUser
-                .toBuilder()
-                .id(testUser.getId() + 1)
-                .build();
-
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk());
-        performDelete(path, status().isOk());
-
-        String responseText = performGet(path, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        List<User> createdUsers = objectMapper.readValue(responseText, listType);
-        assertTrue(createdUsers.isEmpty());
     }
 
     @Test
@@ -169,35 +107,5 @@ class UserControllerTest extends ItemControllerTest<User> {
                 .getContentAsString();
         User updatedUser = objectMapper.readValue(responseText, User.class);
         assertEquals(userToUpdate, updatedUser);
-    }
-
-    @Test
-    void update_idIsMissing_shouldReturn500() throws Exception {
-        User userToUpdate = testUser
-                .toBuilder()
-                .id(0)
-                .build();
-
-        assertEquals(
-                ItemNotFoundException.class,
-                performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
-    }
-
-    @Test
-    void update_idNotFound_shouldReturn500() throws Exception {
-        User userToUpdate = testUser
-                .toBuilder()
-                .id(-1)
-                .build();
-
-        assertEquals(
-                ItemNotFoundException.class,
-                performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isInternalServerError())
-                        .getResolvedException()
-                        .getClass()
-        );
     }
 }
