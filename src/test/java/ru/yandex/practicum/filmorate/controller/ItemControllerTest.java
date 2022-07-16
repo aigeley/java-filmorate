@@ -151,42 +151,42 @@ public abstract class ItemControllerTest<T extends Identifiable<T>> {
     }
 
     @Test
-    void update_idIsMissing_shouldReturn500() throws Exception {
+    void update_idIsMissing_shouldReturn404() throws Exception {
         T itemToUpdate = testItem.withId(0);
         assertEquals(
                 ItemNotFoundException.class,
-                performPut(path, objectMapper.writeValueAsString(itemToUpdate), status().isInternalServerError())
+                performPut(path, objectMapper.writeValueAsString(itemToUpdate), status().isNotFound())
                         .getResolvedException()
                         .getClass()
         );
     }
 
     @Test
-    void update_idNotFound_shouldReturn500() throws Exception {
+    void update_idNotFound_shouldReturn404() throws Exception {
         T itemToUpdate = testItem.withId(-1);
         assertEquals(
                 ItemNotFoundException.class,
-                performPut(path, objectMapper.writeValueAsString(itemToUpdate), status().isInternalServerError())
+                performPut(path, objectMapper.writeValueAsString(itemToUpdate), status().isNotFound())
                         .getResolvedException()
                         .getClass()
         );
     }
 
     @Test
-    void get_idIsMissing_shouldReturn500() throws Exception {
+    void get_idIsMissing_shouldReturn404() throws Exception {
         assertEquals(
                 ItemNotFoundException.class,
-                performGet(path + "/0", status().isInternalServerError())
+                performGet(path + "/0", status().isNotFound())
                         .getResolvedException()
                         .getClass()
         );
     }
 
     @Test
-    void get_idNotFound_shouldReturn500() throws Exception {
+    void get_idNotFound_shouldReturn404() throws Exception {
         assertEquals(
                 ItemNotFoundException.class,
-                performGet(path + "/-1", status().isInternalServerError())
+                performGet(path + "/-1", status().isNotFound())
                         .getResolvedException()
                         .getClass()
         );

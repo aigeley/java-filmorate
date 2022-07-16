@@ -9,6 +9,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @With
 @Value
@@ -23,4 +25,18 @@ public class User implements Identifiable<User> {
     String name;
     @PastOrPresent
     LocalDate birthday;
+    Set<Long> friends;
+
+    public User(long id, String email, String login, String name, LocalDate birthday, Set<Long> friends) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+        this.friends = friends == null ? new HashSet<>() : friends;
+    }
+
+    public Set<Long> getFriends() {
+        return new HashSet<>(friends);
+    }
 }

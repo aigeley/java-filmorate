@@ -24,11 +24,20 @@ public abstract class ItemService<T extends Identifiable<T>> {
         return isIdMissing ? item.withId(itemStorage.getNextId()) : item; //если id не задано извне, то задаём сами
     }
 
-    public T get(long itemId) {
+    private void checkIfItemNotFound(long itemId) {
         if (itemId == 0 || !itemStorage.isIdExists(itemId)) {
             throw new ItemNotFoundException(itemId, itemName);
         }
+    }
 
+    private void checkIfItemAlreadyExists(long itemId) {
+        if (itemStorage.isIdExists(itemId)) {
+            throw new ItemAlreadyExistsException(itemId, itemName);
+        }
+    }
+
+    public T get(long itemId) {
+        checkIfItemNotFound(itemId);
         return itemStorage.get(itemId);
     }
 
@@ -39,22 +48,14 @@ public abstract class ItemService<T extends Identifiable<T>> {
     public T add(T item) {
         T itemToAdd = getItemWithId(item);
         long itemToAddId = itemToAdd.getId();
-
-        if (itemStorage.isIdExists(itemToAddId)) {
-            throw new ItemAlreadyExistsException(itemToAddId, itemName);
-        }
-
+        checkIfItemAlreadyExists(itemToAddId);
         log.info("add: " + itemToAdd);
         return itemStorage.add(itemToAdd);
     }
 
     public T update(T item) {
         long itemId = item.getId();
-
-        if (itemId == 0 || !itemStorage.isIdExists(itemId)) {
-            throw new ItemNotFoundException(itemId, itemName);
-        }
-
+        checkIfItemNotFound(itemId);
         log.info("update: " + item);
         return itemStorage.update(item);
     }
