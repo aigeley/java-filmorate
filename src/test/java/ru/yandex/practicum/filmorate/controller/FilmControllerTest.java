@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 
@@ -61,7 +62,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
-        Film createdFilm = objectMapper.readValue(responseText, Film.class);
+        Film createdFilm = objectMapper.readValue(responseText, testItemClass);
         assertEquals(200, createdFilm.getDescription().length());
         assertEquals(filmToAdd, createdFilm);
     }
@@ -87,7 +88,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
-        Film createdFilm = objectMapper.readValue(responseText, Film.class);
+        Film createdFilm = objectMapper.readValue(responseText, testItemClass);
         assertEquals(filmToAdd, createdFilm);
     }
 
@@ -124,7 +125,24 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         String responseText = performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isOk())
                 .getResponse()
                 .getContentAsString();
-        Film updatedFilm = objectMapper.readValue(responseText, Film.class);
+        Film updatedFilm = objectMapper.readValue(responseText, testItemClass);
         assertEquals(filmToUpdate, updatedFilm);
+    }
+
+    @Test
+    void add_addLike_get_shouldReturn200AndLikesList() throws Exception {
+        long testFilmId = testFilm.getId();
+        long userId1 = 1;
+        long userId2 = 2;
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        performPut(path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
+        performPut(path + "/" + testFilmId + "/like/" + userId2, "", status().isOk());
+        String responseText = performGet(path + "/" + testFilmId, status().isOk())
+                .getResponse()
+                .getContentAsString();
+        Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
+        assertEquals(2, filmWithLikes.getLikes().size());
+        assertTrue(filmWithLikes.getLikes().contains(userId1));
+        assertTrue(filmWithLikes.getLikes().contains(userId2));
     }
 }
