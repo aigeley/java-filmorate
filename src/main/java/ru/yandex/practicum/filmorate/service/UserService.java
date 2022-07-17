@@ -36,6 +36,7 @@ public class UserService extends ItemService<User> {
 
     protected void addFriendToUser(long userId, long friendId) {
         User user = get(userId);
+        checkIfItemNotFound(friendId);
         Set<Long> friends = user.getFriends();
         friends.add(friendId);
         User userToUpdate = user.withFriends(friends);
@@ -64,6 +65,15 @@ public class UserService extends ItemService<User> {
         return get(userId)
                 .getFriends()
                 .stream()
+                .map(this::get)
+                .collect(Collectors.toList());
+    }
+
+    public List<User> getCommonFriends(long userId, long otherUserId) {
+        return get(userId)
+                .getFriends()
+                .stream()
+                .filter(friendId -> get(otherUserId).getFriends().contains(friendId))
                 .map(this::get)
                 .collect(Collectors.toList());
     }

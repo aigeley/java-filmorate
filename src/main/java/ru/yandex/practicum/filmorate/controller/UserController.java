@@ -38,4 +38,9 @@ public class UserController extends ItemController<User> {
     public List<User> getFriends(@PathVariable("id") long userId) {
         return userService.getFriends(userId);
     }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable("id") long userId, @PathVariable("otherId") long otherUserId) {
+        return userService.getCommonFriends(userId, otherUserId);
+    }
 }

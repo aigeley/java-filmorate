@@ -189,4 +189,26 @@ class UserControllerTest extends ItemControllerTest<User> {
         List<User> actualUserFriends = objectMapper.readValue(responseText, listType);
         assertEquals(expectedUserFriends, actualUserFriends);
     }
+
+    @Test
+    void add_addFriend_getCommonFriends_shouldReturn200AndListOfCommonFriends() throws Exception {
+        long testUserId = testUser.getId();
+        long friendId1 = testUserId + 1;
+        long friendId2 = testUserId + 2;
+        User friend1 = testUser.withId(friendId1);
+        User friend2 = testUser.withId(friendId2);
+        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(friend1), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
+        performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        performPut(path + "/" + friendId1 + "/friends/" + friendId2, "", status().isOk());
+        User userFriend2 = friend2.withFriends(new HashSet<>(Arrays.asList(testUserId, friendId1)));
+        List<User> expectedCommonFriends = Arrays.asList(userFriend2);
+        String responseText = performGet(path + "/" + testUserId + "/friends/common/" + friendId1, status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<User> actualCommonFriends = objectMapper.readValue(responseText, listType);
+        assertEquals(expectedCommonFriends, actualCommonFriends);
+    }
 }
