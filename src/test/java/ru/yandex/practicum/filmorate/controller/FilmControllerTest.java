@@ -2,30 +2,33 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class FilmControllerTest extends ItemControllerTest<Film> {
     private final Film testFilm;
+    private final User testUser;
 
     @Autowired
     public FilmControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
         super(mockMvc,
-                BASE_PATH,
+                FilmController.BASE_PATH,
                 objectMapper,
                 Film
                         .builder()
@@ -38,8 +41,24 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                 Film.class);
 
         this.testFilm = this.testItem;
+        this.testUser = User
+                .builder()
+                .id(777)
+                .email("TAnderson@metacortex.com")
+                .login("Neo")
+                .name("Thomas Anderson")
+                .birthday(LocalDate.of(1962, 3, 11))
+                .build();
+
         this.listType = new TypeReference<>() {
         };
+    }
+
+    @Override
+    @BeforeEach
+    void setUp() throws Exception {
+        performDelete(UserController.BASE_PATH, status().isOk());
+        super.setUp();
     }
 
     @Test
@@ -132,17 +151,41 @@ class FilmControllerTest extends ItemControllerTest<Film> {
     @Test
     void add_addLike_get_shouldReturn200AndLikesList() throws Exception {
         long testFilmId = testFilm.getId();
-        long userId1 = 1;
-        long userId2 = 2;
+        long testUserId = testUser.getId();
+        long userId1 = testUserId + 1;
+        User user1 = testUser.withId(userId1);
         performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
+        performPut(path + "/" + testFilmId + "/like/" + testUserId, "", status().isOk());
         performPut(path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
-        performPut(path + "/" + testFilmId + "/like/" + userId2, "", status().isOk());
         String responseText = performGet(path + "/" + testFilmId, status().isOk())
                 .getResponse()
                 .getContentAsString();
         Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
         assertEquals(2, filmWithLikes.getLikes().size());
+        assertTrue(filmWithLikes.getLikes().contains(testUserId));
         assertTrue(filmWithLikes.getLikes().contains(userId1));
-        assertTrue(filmWithLikes.getLikes().contains(userId2));
+    }
+
+    @Test
+    void add_addLike_deleteLike_get_shouldReturn200AndActualLikesList() throws Exception {
+        long testFilmId = testFilm.getId();
+        long testUserId = testUser.getId();
+        long userId1 = testUserId + 1;
+        User user1 = testUser.withId(userId1);
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
+        performPut(path + "/" + testFilmId + "/like/" + testUserId, "", status().isOk());
+        performPut(path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
+        performDelete(path + "/" + testFilmId + "/like/" + userId1, status().isOk());
+        String responseText = performGet(path + "/" + testFilmId, status().isOk())
+                .getResponse()
+                .getContentAsString();
+        Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
+        assertEquals(1, filmWithLikes.getLikes().size());
+        assertTrue(filmWithLikes.getLikes().contains(testUserId));
+        assertFalse(filmWithLikes.getLikes().contains(userId1));
     }
 }
