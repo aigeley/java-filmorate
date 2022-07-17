@@ -4,7 +4,10 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.ItemStorage;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService extends ItemService<Film> {
@@ -32,5 +35,15 @@ public class FilmService extends ItemService<Film> {
         friends.remove(userId);
         Film filmToUpdate = film.withLikes(friends);
         update(filmToUpdate);
+    }
+
+    public List<Film> getPopularFilms(int count) {
+        return itemStorage
+                .getAll()
+                .stream()
+                .map(Film.class::cast)
+                .sorted(Comparator.comparingInt((Film film) -> film.getLikes().size()).reversed())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }

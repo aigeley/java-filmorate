@@ -13,6 +13,9 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -187,5 +190,52 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         assertEquals(1, filmWithLikes.getLikes().size());
         assertTrue(filmWithLikes.getLikes().contains(testUserId));
         assertFalse(filmWithLikes.getLikes().contains(userId1));
+    }
+
+    @Test
+    void add_addLike_getPopularFilms_shouldReturn200AndLimitedFilmsList() throws Exception {
+        int count = 3;
+        long userId0 = testUser.getId();
+        long userId1 = userId0 + 1;
+        User user1 = testUser.withId(userId1);
+        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
+        long filmId0 = testFilm.getId();
+        long filmId1 = filmId0 + 1;
+        long filmId2 = filmId0 + 2;
+        long filmId3 = filmId0 + 3;
+        Film film1 = testFilm.withId(filmId1);
+        Film film2 = testFilm.withId(filmId2);
+        Film film3 = testFilm.withId(filmId3);
+        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(film1), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(film2), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(film3), status().isOk());
+        performPut(path + "/" + filmId0 + "/like/" + userId0, "", status().isOk());
+        performPut(path + "/" + filmId0 + "/like/" + userId1, "", status().isOk());
+        performPut(path + "/" + filmId1 + "/like/" + userId0, "", status().isOk());
+        Film filmWithLikes0 = testFilm.withLikes(new HashSet<>(Arrays.asList(userId0, userId1)));
+        Film filmWithLikes1 = film1.withLikes(new HashSet<>(Arrays.asList(userId0)));
+        List<Film> expectedPopularFilms = Arrays.asList(filmWithLikes0, filmWithLikes1, film2);
+        String responseText = performGet(path + "/popular?count=" + count, status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<Film> actualPopularFilms = objectMapper.readValue(responseText, listType);
+        assertEquals(count, actualPopularFilms.size());
+        assertEquals(expectedPopularFilms, actualPopularFilms);
+    }
+
+    @Test
+    void add_getPopularFilms_countIsMissing_shouldReturn200AndDefaultLengthFilmsList() throws Exception {
+        int count = Integer.parseInt(FilmController.DEFAULT_FILMS_TO_DISPLAY);
+        long testFilmId = testFilm.getId();
+        for (int i = 0; i <= count; i++) { //добавляем на 1 фильм больше, чем длина списка по умолчанию
+            performPost(path, objectMapper.writeValueAsString(testFilm.withId(testFilmId + i)), status().isOk());
+        }
+        String responseText = performGet(path + "/popular", status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<Film> actualPopularFilms = objectMapper.readValue(responseText, listType);
+        assertEquals(count, actualPopularFilms.size());
     }
 }
