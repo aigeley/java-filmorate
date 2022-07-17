@@ -44,4 +44,17 @@ public class UserService extends ItemService<User> {
         addFriendToUser(userId, friendId);
         addFriendToUser(friendId, userId);
     }
+
+    protected void deleteFriendFromUser(long userId, long friendId) {
+        User user = get(userId);
+        Set<Long> friends = user.getFriends();
+        friends.remove(friendId);
+        User userToUpdate = user.withFriends(friends);
+        update(userToUpdate);
+    }
+
+    public void deleteFriend(long userId, long friendId) {
+        deleteFriendFromUser(userId, friendId);
+        deleteFriendFromUser(friendId, userId);
+    }
 }
