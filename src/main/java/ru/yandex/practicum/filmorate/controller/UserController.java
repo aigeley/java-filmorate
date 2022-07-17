@@ -1,12 +1,15 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+
+import java.util.List;
 
 import static ru.yandex.practicum.filmorate.controller.UserController.BASE_PATH;
 
@@ -29,5 +32,10 @@ public class UserController extends ItemController<User> {
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable("id") long userId, @PathVariable long friendId) {
         userService.deleteFriend(userId, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable("id") long userId) {
+        return userService.getFriends(userId);
     }
 }

@@ -4,7 +4,9 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.ItemStorage;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService extends ItemService<User> {
@@ -56,5 +58,13 @@ public class UserService extends ItemService<User> {
     public void deleteFriend(long userId, long friendId) {
         deleteFriendFromUser(userId, friendId);
         deleteFriendFromUser(friendId, userId);
+    }
+
+    public List<User> getFriends(long userId) {
+        return get(userId)
+                .getFriends()
+                .stream()
+                .map(this::get)
+                .collect(Collectors.toList());
     }
 }

@@ -10,6 +10,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -48,7 +51,7 @@ class UserControllerTest extends ItemControllerTest<User> {
         String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User createdUser = objectMapper.readValue(responseText, User.class);
+        User createdUser = objectMapper.readValue(responseText, testItemClass);
         assertEquals(userToAdd.getLogin(), createdUser.getName());
     }
 
@@ -58,7 +61,7 @@ class UserControllerTest extends ItemControllerTest<User> {
         String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User createdUser = objectMapper.readValue(responseText, User.class);
+        User createdUser = objectMapper.readValue(responseText, testItemClass);
         assertEquals(userToAdd, createdUser);
     }
 
@@ -107,7 +110,7 @@ class UserControllerTest extends ItemControllerTest<User> {
         String responseText = performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User updatedUser = objectMapper.readValue(responseText, User.class);
+        User updatedUser = objectMapper.readValue(responseText, testItemClass);
         assertEquals(userToUpdate, updatedUser);
     }
 
@@ -126,14 +129,14 @@ class UserControllerTest extends ItemControllerTest<User> {
         String responseText = performGet(path + "/" + testUserId, status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User userWithFriends = objectMapper.readValue(responseText, User.class);
+        User userWithFriends = objectMapper.readValue(responseText, testItemClass);
         assertEquals(2, userWithFriends.getFriends().size());
         assertTrue(userWithFriends.getFriends().contains(friendId1));
         assertTrue(userWithFriends.getFriends().contains(friendId2));
         String responseText1 = performGet(path + "/" + friendId1, status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User usersFriend1 = objectMapper.readValue(responseText1, User.class);
+        User usersFriend1 = objectMapper.readValue(responseText1, testItemClass);
         assertEquals(1, usersFriend1.getFriends().size());
         assertTrue(usersFriend1.getFriends().contains(testUserId));
     }
@@ -154,14 +157,36 @@ class UserControllerTest extends ItemControllerTest<User> {
         String responseText = performGet(path + "/" + testUserId, status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User userWithFriends = objectMapper.readValue(responseText, User.class);
+        User userWithFriends = objectMapper.readValue(responseText, testItemClass);
         assertEquals(1, userWithFriends.getFriends().size());
         assertFalse(userWithFriends.getFriends().contains(friendId1));
         assertTrue(userWithFriends.getFriends().contains(friendId2));
         String responseText1 = performGet(path + "/" + friendId1, status().isOk())
                 .getResponse()
                 .getContentAsString();
-        User usersFriend1 = objectMapper.readValue(responseText1, User.class);
+        User usersFriend1 = objectMapper.readValue(responseText1, testItemClass);
         assertEquals(0, usersFriend1.getFriends().size());
+    }
+
+    @Test
+    void add_addFriend_getFriends_shouldReturn200AndListOfAllFriends() throws Exception {
+        long testUserId = testUser.getId();
+        long friendId1 = testUserId + 1;
+        long friendId2 = testUserId + 2;
+        User friend1 = testUser.withId(friendId1);
+        User friend2 = testUser.withId(friendId2);
+        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(friend1), status().isOk());
+        performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
+        performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        User userFriend1 = friend1.withFriends(new HashSet<>(Arrays.asList(testUserId)));
+        User userFriend2 = friend2.withFriends(new HashSet<>(Arrays.asList(testUserId)));
+        List<User> expectedUserFriends = Arrays.asList(userFriend1, userFriend2);
+        String responseText = performGet(path + "/" + testUserId + "/friends", status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<User> actualUserFriends = objectMapper.readValue(responseText, listType);
+        assertEquals(expectedUserFriends, actualUserFriends);
     }
 }
