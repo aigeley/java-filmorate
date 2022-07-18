@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -44,12 +43,6 @@ class UserControllerTest extends ItemControllerTest<User> {
         this.testUser = this.testItem;
         this.listType = new TypeReference<>() {
         };
-    }
-
-    @Override
-    @BeforeEach
-    void setUp() throws Exception {
-        super.setUp();
     }
 
     @Test

@@ -2,20 +2,20 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.ItemStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService extends ItemService<Film> {
     private static final String ITEM_NAME = "фильм";
+    private final FilmStorage filmStorage;
     private final UserService userService;
 
-    protected FilmService(ItemStorage<Film> itemStorage, UserService userService) {
-        super(ITEM_NAME, itemStorage);
+    protected FilmService(FilmStorage filmStorage, UserService userService) {
+        super(ITEM_NAME, filmStorage);
+        this.filmStorage = filmStorage;
         this.userService = userService;
     }
 
@@ -38,12 +38,6 @@ public class FilmService extends ItemService<Film> {
     }
 
     public List<Film> getPopularFilms(int count) {
-        return itemStorage
-                .getAll()
-                .stream()
-                .map(Film.class::cast)
-                .sorted(Comparator.comparingInt((Film film) -> film.getLikes().size()).reversed())
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getPopularFilms(count);
     }
 }

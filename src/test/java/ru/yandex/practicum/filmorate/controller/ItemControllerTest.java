@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -77,6 +78,7 @@ public abstract class ItemControllerTest<T extends Identifiable<T>> {
                 .andReturn();
     }
 
+    @BeforeEach
     void setUp() throws Exception {
         performDelete(path, status().isOk());
     }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
+import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.model.validation.Login;
 
 import javax.validation.constraints.Email;
@@ -34,6 +35,10 @@ public class User implements Identifiable<User> {
         this.name = name;
         this.birthday = birthday;
         this.friends = friends == null ? new HashSet<>() : friends;
+    }
+
+    public String getName() {
+        return StringUtils.hasText(name) ? name : login; //если name не указано, то используем login
     }
 
     public Set<Long> getFriends() {

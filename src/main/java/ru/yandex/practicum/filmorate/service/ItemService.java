@@ -18,20 +18,20 @@ public abstract class ItemService<T extends Identifiable<T>> {
         this.itemStorage = itemStorage;
     }
 
-    protected T getItemWithId(T item) {
+    protected T setItemIdIfMissing(T item) {
         long itemId = item.getId();
         boolean isIdMissing = itemId == 0;
         return isIdMissing ? item.withId(itemStorage.getNextId()) : item; //если id не задано извне, то задаём сами
     }
 
     protected void checkIfItemNotFound(long itemId) {
-        if (itemId == 0 || !itemStorage.isIdExists(itemId)) {
+        if (itemId == 0 || !itemStorage.isExists(itemId)) {
             throw new ItemNotFoundException(itemId, itemName);
         }
     }
 
     protected void checkIfItemAlreadyExists(long itemId) {
-        if (itemStorage.isIdExists(itemId)) {
+        if (itemStorage.isExists(itemId)) {
             throw new ItemAlreadyExistsException(itemId, itemName);
         }
     }
@@ -46,7 +46,7 @@ public abstract class ItemService<T extends Identifiable<T>> {
     }
 
     public T add(T item) {
-        T itemToAdd = getItemWithId(item);
+        T itemToAdd = setItemIdIfMissing(item);
         long itemToAddId = itemToAdd.getId();
         checkIfItemAlreadyExists(itemToAddId);
         log.info("add: " + itemToAdd);

@@ -15,5 +15,5 @@ public interface ItemStorage<T> {
 
     void deleteAll();
 
-    boolean isIdExists(long itemId);
+    boolean isExists(long itemId);
 }

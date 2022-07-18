@@ -48,7 +48,7 @@ public abstract class InMemoryItemStorage<T extends Identifiable<T>> implements 
     }
 
     @Override
-    public boolean isIdExists(long itemId) {
+    public boolean isExists(long itemId) {
         return items.containsKey(itemId);
     }
 }
