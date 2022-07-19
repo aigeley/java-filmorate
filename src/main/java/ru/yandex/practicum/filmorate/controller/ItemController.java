@@ -1,58 +1,46 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
-import ru.yandex.practicum.filmorate.controller.exception.ItemAlreadyExistsException;
-import ru.yandex.practicum.filmorate.controller.exception.ItemNotFoundException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import ru.yandex.practicum.filmorate.model.Identifiable;
+import ru.yandex.practicum.filmorate.service.ItemService;
 
+import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
-@Slf4j
-public abstract class ItemController<T> {
-    protected final String path;
-    protected final String itemName;
-    private final Map<Integer, T> items;
-    private AtomicInteger lastId;
+public abstract class ItemController<T extends Identifiable<T>> {
+    ItemService<T> itemService;
 
-    protected ItemController(String path, String itemName) {
-        this.path = path;
-        this.itemName = itemName;
-        this.items = new HashMap<>();
-        this.lastId = new AtomicInteger(0);
+    protected ItemController(ItemService<T> itemService) {
+        this.itemService = itemService;
     }
 
-    protected int getNextId() {
-        return lastId.incrementAndGet();
+    @GetMapping("/{id}")
+    public T get(@PathVariable("id") long itemId) {
+        return itemService.get(itemId);
     }
 
-    protected Collection<T> getAll() {
-        return items.values();
+    @GetMapping
+    public Collection<T> getAll() {
+        return itemService.getAll();
     }
 
-    protected T add(int itemId, T item) {
-        if (items.containsKey(itemId)) {
-            throw new ItemAlreadyExistsException(itemId, itemName);
-        }
-
-        items.put(itemId, item);
-        log.info("POST: " + item);
-        return item;
+    @PostMapping
+    public T add(@Valid @RequestBody T item) {
+        return itemService.add(item);
     }
 
-    protected T update(int itemId, T item) {
-        if (itemId == 0 || !items.containsKey(itemId)) {
-            throw new ItemNotFoundException(itemId, itemName);
-        }
-
-        items.put(itemId, item);
-        log.info("PUT: " + item);
-        return item;
+    @PutMapping
+    public T update(@Valid @RequestBody T item) {
+        return itemService.update(item);
     }
 
-    protected void deleteAll() {
-        items.clear();
-        log.info("DELETE: " + path);
+    @DeleteMapping
+    public void deleteAll() {
+        itemService.deleteAll();
     }
 }
