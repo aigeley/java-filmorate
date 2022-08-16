@@ -10,7 +10,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @With
@@ -34,7 +35,7 @@ public class User implements Identifiable<User> {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
-        this.friends = friends == null ? new HashSet<>() : friends;
+        this.friends = friends == null ? Collections.emptySet() : friends;
     }
 
     public String getName() {
@@ -42,6 +43,6 @@ public class User implements Identifiable<User> {
     }
 
     public Set<Long> getFriends() {
-        return new HashSet<>(friends);
+        return new LinkedHashSet<>(friends);
     }
 }

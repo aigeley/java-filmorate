@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
 
@@ -40,6 +41,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                         .description("Wake up, Neo...")
                         .releaseDate(LocalDate.of(1999, 3, 24))
                         .duration(136)
+                        .mpa(new Mpa(4, "R"))
                         .build(),
                 Film.class);
 

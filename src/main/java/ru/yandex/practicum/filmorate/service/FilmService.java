@@ -31,9 +31,9 @@ public class FilmService extends ItemService<Film> {
     public void deleteLike(long filmId, long userId) {
         Film film = get(filmId);
         userService.checkIfItemNotFound(userId);
-        Set<Long> friends = film.getLikes();
-        friends.remove(userId);
-        Film filmToUpdate = film.withLikes(friends);
+        Set<Long> likes = film.getLikes();
+        likes.remove(userId);
+        Film filmToUpdate = film.withLikes(likes);
         update(filmToUpdate);
     }
 

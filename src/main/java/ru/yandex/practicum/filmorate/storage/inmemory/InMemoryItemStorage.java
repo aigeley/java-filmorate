@@ -1,6 +1,7 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.inmemory;
 
 import ru.yandex.practicum.filmorate.model.Identifiable;
+import ru.yandex.practicum.filmorate.storage.ItemStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
