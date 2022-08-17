@@ -20,11 +20,3 @@ INSERT INTO mpa (mpa_name)
 VALUES ('R');
 INSERT INTO mpa (mpa_name)
 VALUES ('NC-17');
-/*
-INSERT INTO users (email, login, user_name, birthday)
-VALUES ('mail@mail.ru', 'dolore', 'Nick Name', '1946-08-20');
-INSERT INTO users (email, login, user_name, birthday)
-VALUES ('friend@mail.ru', 'friend', 'friend adipisicing', '1976-08-20');
-INSERT INTO users (email, login, user_name, birthday)
-VALUES ('friend@common.ru', 'common', 'common', '2000-08-20');
-*/

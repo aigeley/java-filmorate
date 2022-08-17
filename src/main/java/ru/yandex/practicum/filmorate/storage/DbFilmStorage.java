@@ -1,13 +1,11 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.storage;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,7 +15,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@Primary
 @Component
 public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
     private final JdbcTemplate jdbcTemplate;
@@ -71,7 +68,7 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
         }
 
         String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES "
-                + getPlaceHolders(genresCount);
+                + DbUtils.getPlaceHolders(genresCount);
         List<Long> filmGenres = new ArrayList<>();
 
         for (Genre genre : film.getGenres()) {
@@ -117,7 +114,7 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
         }
 
         String sql = "INSERT INTO likes (film_id, user_id) VALUES "
-                + getPlaceHolders(likesCount);
+                + DbUtils.getPlaceHolders(likesCount);
         List<Long> filmLikes = new ArrayList<>();
 
         for (long userId : film.getLikes()) {
@@ -213,6 +210,16 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
         );
 
         return (cnt == null ? 0 : cnt) > 0;
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, COUNT(l.like_id) cnt FROM films f " +
+                "LEFT JOIN likes l on f.film_id = l.film_id " +
+                "GROUP BY f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id " +
+                "ORDER BY cnt DESC, f.film_id " +
+                "LIMIT ?";
+        return jdbcTemplate.query(sql, this, count);
     }
 
     @Override

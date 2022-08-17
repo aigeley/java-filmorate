@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
@@ -16,6 +17,7 @@ import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +44,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                         .releaseDate(LocalDate.of(1999, 3, 24))
                         .duration(136)
                         .mpa(new Mpa(4, "R"))
+                        .genres(new LinkedHashSet<>(Arrays.asList(new Genre(6, "Боевик"), new Genre(1, "Комедия"))))
                         .build(),
                 Film.class);
 

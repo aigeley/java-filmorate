@@ -1,11 +1,9 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.storage;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,8 +12,8 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-@Primary
 @Component
 public class DbUserStorage implements UserStorage, RowMapper<User> {
     private final JdbcTemplate jdbcTemplate;
@@ -56,7 +54,7 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
         }
 
         String sql = "INSERT INTO user_friends (user_id, friend_id) VALUES "
-                + getPlaceHolders(friendsCount);
+                + DbUtils.getPlaceHolders(friendsCount);
         List<Long> userFriends = new ArrayList<>();
 
         for (long friendId : user.getFriends()) {
@@ -148,6 +146,25 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
         );
 
         return (cnt == null ? 0 : cnt) > 0;
+    }
+
+    @Override
+    public List<User> getFriends(long userId) {
+        return get(userId)
+                .getFriends()
+                .stream()
+                .map(this::get)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> getCommonFriends(long userId, long otherUserId) {
+        return get(userId)
+                .getFriends()
+                .stream()
+                .filter(friendId -> get(otherUserId).getFriends().contains(friendId))
+                .map(this::get)
+                .collect(Collectors.toList());
     }
 
     @Override

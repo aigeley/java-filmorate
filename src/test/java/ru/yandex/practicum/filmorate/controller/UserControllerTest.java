@@ -126,6 +126,7 @@ class UserControllerTest extends ItemControllerTest<User> {
         performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
         performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
         performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        performPut(path + "/" + friendId1 + "/friends/" + testUserId, "", status().isOk());
         String responseText = performGet(path + "/" + testUserId, status().isOk())
                 .getResponse()
                 .getContentAsString();
