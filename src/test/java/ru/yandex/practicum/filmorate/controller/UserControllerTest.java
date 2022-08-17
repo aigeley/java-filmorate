@@ -41,14 +41,14 @@ class UserControllerTest extends ItemControllerTest<User> {
                 User.class);
 
         this.testUser = this.testItem;
-        this.listType = new TypeReference<>() {
+        this.typeOfList = new TypeReference<>() {
         };
     }
 
     @Test
     void add_nameIsMissing_shouldReturn200WithNameEqualsLogin() throws Exception {
         User userToAdd = testUser.withName("");
-        String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk())
+        String responseText = TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
         User createdUser = objectMapper.readValue(responseText, testItemClass);
@@ -58,7 +58,7 @@ class UserControllerTest extends ItemControllerTest<User> {
     @Test
     void add_birthdayIsCurrentDate_shouldReturn200() throws Exception {
         User userToAdd = testUser.withBirthday(LocalDate.now());
-        String responseText = performPost(path, objectMapper.writeValueAsString(userToAdd), status().isOk())
+        String responseText = TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
         User createdUser = objectMapper.readValue(responseText, testItemClass);
@@ -68,36 +68,36 @@ class UserControllerTest extends ItemControllerTest<User> {
     @Test
     void add_emailWithoutAtSign_shouldReturn400() throws Exception {
         User userToAdd = testUser.withEmail("TAndersonmetacortex.com");
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_emailIsMissing_shouldReturn400() throws Exception {
         User userToAdd = testUser.withEmail("");
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_loginWithSpace_shouldReturn400() throws Exception {
         User userToAdd = testUser.withLogin("N e o");
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_loginIsMissing_shouldReturn400() throws Exception {
         User userToAdd = testUser.withLogin("");
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_birthdayInFuture_shouldReturn400() throws Exception {
         User userToAdd = testUser.withBirthday(LocalDate.of(2062, 3, 11));
-        performPost(path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(userToAdd), status().isBadRequest());
     }
 
     @Test
     void add_update_shouldReturn200AndUpdatedItem() throws Exception {
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
 
         User userToUpdate = testUser
                 .toBuilder()
@@ -107,7 +107,7 @@ class UserControllerTest extends ItemControllerTest<User> {
                 .birthday(LocalDate.of(1960, 3, 11))
                 .build();
 
-        String responseText = performPut(path, objectMapper.writeValueAsString(userToUpdate), status().isOk())
+        String responseText = TestUtils.performPut(mockMvc, path, objectMapper.writeValueAsString(userToUpdate), status().isOk())
                 .getResponse()
                 .getContentAsString();
         User updatedUser = objectMapper.readValue(responseText, testItemClass);
@@ -121,20 +121,20 @@ class UserControllerTest extends ItemControllerTest<User> {
         long friendId2 = testUserId + 2;
         User friend1 = testUser.withId(friendId1);
         User friend2 = testUser.withId(friendId2);
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend1), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
-        performPut(path + "/" + friendId1 + "/friends/" + testUserId, "", status().isOk());
-        String responseText = performGet(path + "/" + testUserId, status().isOk())
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + friendId1 + "/friends/" + testUserId, "", status().isOk());
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId, status().isOk())
                 .getResponse()
                 .getContentAsString();
         User userWithFriends = objectMapper.readValue(responseText, testItemClass);
         assertEquals(2, userWithFriends.getFriends().size());
         assertTrue(userWithFriends.getFriends().contains(friendId1));
         assertTrue(userWithFriends.getFriends().contains(friendId2));
-        String responseText1 = performGet(path + "/" + friendId1, status().isOk())
+        String responseText1 = TestUtils.performGet(mockMvc, path + "/" + friendId1, status().isOk())
                 .getResponse()
                 .getContentAsString();
         User usersFriend1 = objectMapper.readValue(responseText1, testItemClass);
@@ -149,20 +149,20 @@ class UserControllerTest extends ItemControllerTest<User> {
         long friendId2 = testUserId + 2;
         User friend1 = testUser.withId(friendId1);
         User friend2 = testUser.withId(friendId2);
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend1), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
-        performDelete(path + "/" + testUserId + "/friends/" + friendId1, status().isOk());
-        String responseText = performGet(path + "/" + testUserId, status().isOk())
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        TestUtils.performDelete(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, status().isOk());
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId, status().isOk())
                 .getResponse()
                 .getContentAsString();
         User userWithFriends = objectMapper.readValue(responseText, testItemClass);
         assertEquals(1, userWithFriends.getFriends().size());
         assertFalse(userWithFriends.getFriends().contains(friendId1));
         assertTrue(userWithFriends.getFriends().contains(friendId2));
-        String responseText1 = performGet(path + "/" + friendId1, status().isOk())
+        String responseText1 = TestUtils.performGet(mockMvc, path + "/" + friendId1, status().isOk())
                 .getResponse()
                 .getContentAsString();
         User usersFriend1 = objectMapper.readValue(responseText1, testItemClass);
@@ -176,18 +176,18 @@ class UserControllerTest extends ItemControllerTest<User> {
         long friendId2 = testUserId + 2;
         User friend1 = testUser.withId(friendId1);
         User friend2 = testUser.withId(friendId2);
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend1), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
         User userFriend1 = friend1.withFriends(new HashSet<>(Arrays.asList(testUserId)));
         User userFriend2 = friend2.withFriends(new HashSet<>(Arrays.asList(testUserId)));
         List<User> expectedUserFriends = Arrays.asList(userFriend1, userFriend2);
-        String responseText = performGet(path + "/" + testUserId + "/friends", status().isOk())
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId + "/friends", status().isOk())
                 .getResponse()
                 .getContentAsString();
-        List<User> actualUserFriends = objectMapper.readValue(responseText, listType);
+        List<User> actualUserFriends = objectMapper.readValue(responseText, typeOfList);
         assertEquals(expectedUserFriends, actualUserFriends);
     }
 
@@ -198,18 +198,18 @@ class UserControllerTest extends ItemControllerTest<User> {
         long friendId2 = testUserId + 2;
         User friend1 = testUser.withId(friendId1);
         User friend2 = testUser.withId(friendId2);
-        performPost(path, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend1), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(friend2), status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
-        performPut(path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
-        performPut(path + "/" + friendId1 + "/friends/" + friendId2, "", status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + friendId1 + "/friends/" + friendId2, "", status().isOk());
         User userFriend2 = friend2.withFriends(new HashSet<>(Arrays.asList(testUserId, friendId1)));
         List<User> expectedCommonFriends = Arrays.asList(userFriend2);
-        String responseText = performGet(path + "/" + testUserId + "/friends/common/" + friendId1, status().isOk())
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId + "/friends/common/" + friendId1, status().isOk())
                 .getResponse()
                 .getContentAsString();
-        List<User> actualCommonFriends = objectMapper.readValue(responseText, listType);
+        List<User> actualCommonFriends = objectMapper.readValue(responseText, typeOfList);
         assertEquals(expectedCommonFriends, actualCommonFriends);
     }
 }

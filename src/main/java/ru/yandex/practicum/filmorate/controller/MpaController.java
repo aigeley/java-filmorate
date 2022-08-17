@@ -21,12 +21,12 @@ public class MpaController {
         this.mpaService = mpaService;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     public Mpa get(@PathVariable("id") int mpaId) {
         return mpaService.get(mpaId);
     }
 
-    @GetMapping
+    @GetMapping(produces = "application/json;charset=UTF-8")
     public Collection<Mpa> getAll() {
         return mpaService.getAll();
     }

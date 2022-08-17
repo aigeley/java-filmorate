@@ -36,7 +36,7 @@ public class FilmController extends ItemController<Film> {
         filmService.deleteLike(filmId, userId);
     }
 
-    @GetMapping("/popular")
+    @GetMapping(value = "/popular", produces = "application/json;charset=UTF-8")
     public List<Film> getPopularFilms(@RequestParam(defaultValue = DEFAULT_FILMS_TO_DISPLAY) int count) {
         return filmService.getPopularFilms(count);
     }

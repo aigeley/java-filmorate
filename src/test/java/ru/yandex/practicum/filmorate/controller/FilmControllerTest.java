@@ -58,21 +58,21 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                 .birthday(LocalDate.of(1962, 3, 11))
                 .build();
 
-        this.listType = new TypeReference<>() {
+        this.typeOfList = new TypeReference<>() {
         };
     }
 
     @Override
     @BeforeEach
     void setUp() throws Exception {
-        performDelete(UserController.BASE_PATH, status().isOk());
+        TestUtils.performDelete(mockMvc, UserController.BASE_PATH, status().isOk());
         super.setUp();
     }
 
     @Test
     void add_nameIsMissing_shouldReturn400() throws Exception {
         Film filmToAdd = testFilm.withName("");
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
@@ -86,7 +86,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                         + "he discovers the shocking truth - 200!"
         );
 
-        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
+        String responseText = TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
         Film createdFilm = objectMapper.readValue(responseText, testItemClass);
@@ -106,13 +106,13 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                         + "of an evil cyber-intelligence."
         );
 
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_releaseDateIsTheFirstFilmShow_shouldReturn200() throws Exception {
         Film filmToAdd = testFilm.withReleaseDate(ReleaseDateValidator.FIRST_FILM_SHOW);
-        String responseText = performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
+        String responseText = TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isOk())
                 .getResponse()
                 .getContentAsString();
         Film createdFilm = objectMapper.readValue(responseText, testItemClass);
@@ -122,24 +122,24 @@ class FilmControllerTest extends ItemControllerTest<Film> {
     @Test
     void add_releaseDateIsBeforeTheFirstFilmShow_shouldReturn400() throws Exception {
         Film filmToAdd = testFilm.withReleaseDate(LocalDate.of(1895, 12, 27));
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_durationIsNegative_shouldReturn400() throws Exception {
         Film filmToAdd = testFilm.withDuration(-136);
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_durationIsZero_shouldReturn400() throws Exception {
         Film filmToAdd = testFilm.withDuration(0);
-        performPost(path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(filmToAdd), status().isBadRequest());
     }
 
     @Test
     void add_update_shouldReturn200AndUpdatedItem() throws Exception {
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testFilm), status().isOk());
 
         Film filmToUpdate = testFilm
                 .toBuilder()
@@ -149,7 +149,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                 .duration(102)
                 .build();
 
-        String responseText = performPut(path, objectMapper.writeValueAsString(filmToUpdate), status().isOk())
+        String responseText = TestUtils.performPut(mockMvc, path, objectMapper.writeValueAsString(filmToUpdate), status().isOk())
                 .getResponse()
                 .getContentAsString();
         Film updatedFilm = objectMapper.readValue(responseText, testItemClass);
@@ -162,12 +162,12 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         long testUserId = testUser.getId();
         long userId1 = testUserId + 1;
         User user1 = testUser.withId(userId1);
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
-        performPut(path + "/" + testFilmId + "/like/" + testUserId, "", status().isOk());
-        performPut(path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
-        String responseText = performGet(path + "/" + testFilmId, status().isOk())
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        TestUtils.performPost(mockMvc, UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testFilmId + "/like/" + testUserId, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testFilmId, status().isOk())
                 .getResponse()
                 .getContentAsString();
         Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
@@ -182,13 +182,13 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         long testUserId = testUser.getId();
         long userId1 = testUserId + 1;
         User user1 = testUser.withId(userId1);
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
-        performPut(path + "/" + testFilmId + "/like/" + testUserId, "", status().isOk());
-        performPut(path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
-        performDelete(path + "/" + testFilmId + "/like/" + userId1, status().isOk());
-        String responseText = performGet(path + "/" + testFilmId, status().isOk())
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        TestUtils.performPost(mockMvc, UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testFilmId + "/like/" + testUserId, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testFilmId + "/like/" + userId1, "", status().isOk());
+        TestUtils.performDelete(mockMvc, path + "/" + testFilmId + "/like/" + userId1, status().isOk());
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testFilmId, status().isOk())
                 .getResponse()
                 .getContentAsString();
         Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
@@ -203,8 +203,8 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         long userId0 = testUser.getId();
         long userId1 = userId0 + 1;
         User user1 = testUser.withId(userId1);
-        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
-        performPost(UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
+        TestUtils.performPost(mockMvc, UserController.BASE_PATH, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, UserController.BASE_PATH, objectMapper.writeValueAsString(user1), status().isOk());
         long filmId0 = testFilm.getId();
         long filmId1 = filmId0 + 1;
         long filmId2 = filmId0 + 2;
@@ -212,20 +212,20 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         Film film1 = testFilm.withId(filmId1);
         Film film2 = testFilm.withId(filmId2);
         Film film3 = testFilm.withId(filmId3);
-        performPost(path, objectMapper.writeValueAsString(testFilm), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(film1), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(film2), status().isOk());
-        performPost(path, objectMapper.writeValueAsString(film3), status().isOk());
-        performPut(path + "/" + filmId0 + "/like/" + userId0, "", status().isOk());
-        performPut(path + "/" + filmId0 + "/like/" + userId1, "", status().isOk());
-        performPut(path + "/" + filmId1 + "/like/" + userId0, "", status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testFilm), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(film1), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(film2), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(film3), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + filmId0 + "/like/" + userId0, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + filmId0 + "/like/" + userId1, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + filmId1 + "/like/" + userId0, "", status().isOk());
         Film filmWithLikes0 = testFilm.withLikes(new HashSet<>(Arrays.asList(userId0, userId1)));
         Film filmWithLikes1 = film1.withLikes(new HashSet<>(Arrays.asList(userId0)));
         List<Film> expectedPopularFilms = Arrays.asList(filmWithLikes0, filmWithLikes1, film2);
-        String responseText = performGet(path + "/popular?count=" + count, status().isOk())
+        String responseText = TestUtils.performGet(mockMvc, path + "/popular?count=" + count, status().isOk())
                 .getResponse()
                 .getContentAsString();
-        List<Film> actualPopularFilms = objectMapper.readValue(responseText, listType);
+        List<Film> actualPopularFilms = objectMapper.readValue(responseText, typeOfList);
         assertEquals(count, actualPopularFilms.size());
         assertEquals(expectedPopularFilms, actualPopularFilms);
     }
@@ -235,12 +235,12 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         int count = Integer.parseInt(FilmController.DEFAULT_FILMS_TO_DISPLAY);
         long testFilmId = testFilm.getId();
         for (int i = 0; i <= count; i++) { //добавляем на 1 фильм больше, чем длина списка по умолчанию
-            performPost(path, objectMapper.writeValueAsString(testFilm.withId(testFilmId + i)), status().isOk());
+            TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testFilm.withId(testFilmId + i)), status().isOk());
         }
-        String responseText = performGet(path + "/popular", status().isOk())
+        String responseText = TestUtils.performGet(mockMvc, path + "/popular", status().isOk())
                 .getResponse()
                 .getContentAsString();
-        List<Film> actualPopularFilms = objectMapper.readValue(responseText, listType);
+        List<Film> actualPopularFilms = objectMapper.readValue(responseText, typeOfList);
         assertEquals(count, actualPopularFilms.size());
     }
 }

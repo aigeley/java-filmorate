@@ -21,12 +21,12 @@ public class GenreController {
         this.genreService = genreService;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     public Genre get(@PathVariable("id") int genreId) {
         return genreService.get(genreId);
     }
 
-    @GetMapping
+    @GetMapping(produces = "application/json;charset=UTF-8")
     public Collection<Genre> getAll() {
         return genreService.getAll();
     }
