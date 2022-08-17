@@ -28,7 +28,6 @@ public class UserService extends ItemService<User> {
 
     public void addFriend(long userId, long friendId) {
         addFriendToUser(userId, friendId);
-        addFriendToUser(friendId, userId);
     }
 
     protected void deleteFriendFromUser(long userId, long friendId) {
@@ -41,7 +40,6 @@ public class UserService extends ItemService<User> {
 
     public void deleteFriend(long userId, long friendId) {
         deleteFriendFromUser(userId, friendId);
-        deleteFriendFromUser(friendId, userId);
     }
 
     public List<User> getFriends(long userId) {

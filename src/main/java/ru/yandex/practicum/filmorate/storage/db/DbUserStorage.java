@@ -24,10 +24,61 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    private Set<Long> getFriendsIds(long userId) {
+        String sql = "SELECT friend_id FROM user_friends WHERE user_id = ?";
+
+        return new LinkedHashSet<>(
+                jdbcTemplate.query(
+                        sql,
+                        (rs, rowNum) -> rs.getLong("friend_id"),
+                        userId
+                )
+        );
+    }
+
+    private void rewriteFriendsIds(User user) {
+        deleteFriendsIds(user);
+        insertFriendsIds(user);
+    }
+
+    private void deleteFriendsIds(User user) {
+        long userId = user.getId();
+        String sql = "DELETE FROM user_friends WHERE user_id = ?";
+        jdbcTemplate.update(sql, userId);
+    }
+
+    private void insertFriendsIds(User user) {
+        long userId = user.getId();
+        int friendsCount = user.getFriends().size();
+
+        if (friendsCount == 0) {
+            return; //у пользователя нет друзей
+        }
+
+        String sql = "INSERT INTO user_friends (user_id, friend_id) VALUES "
+                + getPlaceHolders(friendsCount);
+        List<Long> userFriends = new ArrayList<>();
+
+        for (long friendId : user.getFriends()) {
+            userFriends.add(userId);
+            userFriends.add(friendId);
+        }
+
+        jdbcTemplate.update(
+                sql,
+                userFriends.toArray()
+        );
+    }
+
     @Override
     public long getNextId() {
         String sql = "SELECT NEXT VALUE FOR users_seq nextval";
-        Long nextId = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getLong("nextval"));
+
+        Long nextId = jdbcTemplate.queryForObject(
+                sql,
+                (rs, rowNum) -> rs.getLong("nextval")
+        );
+
         return nextId == null ? 0 : nextId;
     }
 
@@ -46,11 +97,11 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
 
     @Override
     public User add(User user) {
-        String sqlInsertUsers = "INSERT INTO users (user_id, email, login, user_name, birthday) " +
+        String sql = "INSERT INTO users (user_id, email, login, user_name, birthday) " +
                 "VALUES (?, ?, ?, ?, ?)";
 
         jdbcTemplate.update(
-                sqlInsertUsers,
+                sql,
                 user.getId(),
                 user.getEmail(),
                 user.getLogin(),
@@ -58,7 +109,7 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
                 user.getBirthday()
         );
 
-        rewriteFriends(user);
+        rewriteFriendsIds(user);
         return user;
     }
 
@@ -76,7 +127,7 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
                 user.getId()
         );
 
-        rewriteFriends(user);
+        rewriteFriendsIds(user);
         return user;
     }
 
@@ -89,7 +140,13 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
     @Override
     public boolean isExists(long userId) {
         String sql = "SELECT COUNT(*) cnt FROM users WHERE user_id = ?";
-        Integer cnt = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getInt("cnt"), userId);
+
+        Integer cnt = jdbcTemplate.queryForObject(
+                sql,
+                (rs, rowNum) -> rs.getInt("cnt"),
+                userId
+        );
+
         return (cnt == null ? 0 : cnt) > 0;
     }
 
@@ -105,52 +162,6 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
                 rs.getString("user_name"),
                 rs.getDate("birthday").toLocalDate(),
                 friends
-        );
-    }
-
-    private Set<Long> getFriendsIds(long userId) {
-        String sqlSelectFriends = "SELECT friend_id FROM user_friends WHERE user_id = ?";
-
-        return new LinkedHashSet<>(
-                jdbcTemplate.query(
-                        sqlSelectFriends,
-                        (rsFriend, rowNumFriend) -> rsFriend.getLong("friend_id"),
-                        userId
-                )
-        );
-    }
-
-    private void rewriteFriends(User user) {
-        deleteFriends(user);
-        insertFriends(user);
-    }
-
-    private void deleteFriends(User user) {
-        long userId = user.getId();
-        String sqlDeleteUserFriends = "DELETE FROM user_friends WHERE user_id = ?";
-        jdbcTemplate.update(sqlDeleteUserFriends, userId);
-    }
-
-    private void insertFriends(User user) {
-        long userId = user.getId();
-        int friendsCount = user.getFriends().size();
-
-        if (friendsCount == 0) {
-            return; //у пользователя нет друзей
-        }
-
-        String sqlInsertUserFriends = "INSERT INTO user_friends (user_id, friend_id) VALUES "
-                + getPlaceHolders(friendsCount);
-        List<Long> userFriends = new ArrayList<>();
-
-        for (long friendId : user.getFriends()) {
-            userFriends.add(userId);
-            userFriends.add(friendId);
-        }
-
-        jdbcTemplate.update(
-                sqlInsertUserFriends,
-                userFriends.toArray()
         );
     }
 }

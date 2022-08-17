@@ -12,6 +12,7 @@ import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @With
@@ -44,5 +45,22 @@ public class User implements Identifiable<User> {
 
     public Set<Long> getFriends() {
         return new LinkedHashSet<>(friends);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        User user = (User) o;
+        return id == user.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
