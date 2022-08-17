@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -63,7 +63,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
     }
 
     @Override
-    @BeforeEach
+    @AfterEach
     void setUp() throws Exception {
         TestUtils.performDelete(mockMvc, UserController.BASE_PATH, status().isOk());
         super.setUp();

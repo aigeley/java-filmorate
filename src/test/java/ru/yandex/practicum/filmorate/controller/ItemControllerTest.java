@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Identifiable;
@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,7 +34,7 @@ public abstract class ItemControllerTest<T extends Identifiable<T>> {
         this.testItemClass = testItemClass;
     }
 
-    @BeforeEach
+    @AfterEach
     void setUp() throws Exception {
         TestUtils.performDelete(mockMvc, path, status().isOk());
     }
@@ -47,16 +46,6 @@ public abstract class ItemControllerTest<T extends Identifiable<T>> {
                 .getContentAsString();
         T createdItem = objectMapper.readValue(responseText, testItemClass);
         assertEquals(testItem, createdItem);
-    }
-
-    @Test
-    void add_idIsMissing_shouldReturn200WithNonZeroId() throws Exception {
-        T itemToAdd = testItem.withId(0);
-        String responseText = TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(itemToAdd), status().isOk())
-                .getResponse()
-                .getContentAsString();
-        T createdItem = objectMapper.readValue(responseText, testItemClass);
-        assertNotEquals(0, createdItem.getId());
     }
 
     @Test
