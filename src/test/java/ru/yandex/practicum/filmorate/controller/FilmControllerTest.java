@@ -243,4 +243,10 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         List<Film> actualPopularFilms = objectMapper.readValue(responseText, typeOfList);
         assertEquals(count, actualPopularFilms.size());
     }
+
+    @Test
+    void getPopularFilms_countIsZeroOrNegative_shouldReturn400() throws Exception {
+        TestUtils.performGet(mockMvc, path + "/popular?count=0", status().isBadRequest());
+        TestUtils.performGet(mockMvc, path + "/popular?count=-1", status().isBadRequest());
+    }
 }

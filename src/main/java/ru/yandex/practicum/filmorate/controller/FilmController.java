@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,10 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 import static ru.yandex.practicum.filmorate.controller.FilmController.BASE_PATH;
 
+@Validated
 @RestController
 @RequestMapping(BASE_PATH)
 public class FilmController extends ItemController<Film> {
@@ -37,7 +40,7 @@ public class FilmController extends ItemController<Film> {
     }
 
     @GetMapping(value = "/popular", produces = "application/json;charset=UTF-8")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = DEFAULT_FILMS_TO_DISPLAY) int count) {
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = DEFAULT_FILMS_TO_DISPLAY) @Positive int count) {
         return filmService.getPopularFilms(count);
     }
 }
