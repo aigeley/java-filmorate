@@ -23,16 +23,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private Mpa getMpa(int mpaId) {
-        String sql = "SELECT mpa_name FROM mpa WHERE mpa_id = ?";
-
-        return jdbcTemplate.queryForObject(
-                sql,
-                (rs, rowNum) -> new Mpa(mpaId, rs.getString("mpa_name")),
-                mpaId
-        );
-    }
-
     private Set<Genre> getGenres(long filmId) {
         String sql = "SELECT g.genre_id, g.genre_name FROM genres g " +
                 "JOIN film_genres fg on g.genre_id = fg.genre_id " +
@@ -142,14 +132,18 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
 
     @Override
     public Film get(long filmId) {
-        String sql = "SELECT film_id, film_name, description, release_date, duration, mpa_id FROM films " +
-                "WHERE film_id = ?";
+        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name " +
+                "FROM films f " +
+                "JOIN mpa m on m.mpa_id = f.mpa_id " +
+                "AND f.film_id = ?";
         return jdbcTemplate.queryForObject(sql, this, filmId);
     }
 
     @Override
     public Collection<Film> getAll() {
-        String sql = "SELECT film_id, film_name, description, release_date, duration, mpa_id FROM films";
+        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name " +
+                "FROM films f " +
+                "JOIN mpa m on m.mpa_id = f.mpa_id";
         return jdbcTemplate.query(sql, this);
     }
 
@@ -214,11 +208,12 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, " +
+        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name, " +
                 "COUNT(l.user_id) cnt " +
                 "FROM films f " +
+                "JOIN mpa m on m.mpa_id = f.mpa_id " +
                 "LEFT JOIN likes l on f.film_id = l.film_id " +
-                "GROUP BY f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id " +
+                "GROUP BY f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name " +
                 "ORDER BY cnt DESC, f.film_id " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, this, count);
@@ -229,7 +224,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
         long filmId = rs.getLong("film_id");
         Set<Genre> genres = getGenres(filmId);
         Set<Long> likes = getLikes(filmId);
-        Mpa mpa = getMpa(rs.getInt("mpa_id"));
 
         return new Film(
                 filmId,
@@ -238,7 +232,7 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
                 rs.getDate("release_date").toLocalDate(),
                 rs.getInt("duration"),
                 likes,
-                mpa,
+                new Mpa(rs.getInt("mpa_id"), rs.getString("mpa_name")),
                 genres
         );
     }
