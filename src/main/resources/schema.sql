@@ -26,15 +26,13 @@ CREATE TABLE IF NOT EXISTS films
     CONSTRAINT films_pk PRIMARY KEY (film_id),
     CONSTRAINT films_mpa_fk FOREIGN KEY (mpa_id) REFERENCES mpa (mpa_id) ON DELETE RESTRICT
 );
-CREATE SEQUENCE IF NOT EXISTS film_genres_seq;
 CREATE TABLE IF NOT EXISTS film_genres
 (
-    film_genre_id BIGINT DEFAULT NEXT VALUE FOR film_genres_seq,
-    film_id       BIGINT,
-    genre_id      INT,
+    film_id  BIGINT,
+    genre_id INT,
+    CONSTRAINT film_genres_pk PRIMARY KEY (film_id, genre_id),
     CONSTRAINT film_genres_film_fk FOREIGN KEY (film_id) REFERENCES films (film_id) ON DELETE CASCADE,
-    CONSTRAINT film_genres_genre_fk FOREIGN KEY (genre_id) REFERENCES genres (genre_id) ON DELETE RESTRICT,
-    CONSTRAINT film_genres_uq UNIQUE (film_id, genre_id)
+    CONSTRAINT film_genres_genre_fk FOREIGN KEY (genre_id) REFERENCES genres (genre_id) ON DELETE RESTRICT
 );
 CREATE SEQUENCE IF NOT EXISTS users_seq;
 CREATE TABLE IF NOT EXISTS users
@@ -46,23 +44,19 @@ CREATE TABLE IF NOT EXISTS users
     birthday  DATE         NOT NULL,
     CONSTRAINT users_pk PRIMARY KEY (user_id)
 );
-CREATE SEQUENCE IF NOT EXISTS likes_seq;
 CREATE TABLE IF NOT EXISTS likes
 (
-    like_id BIGINT DEFAULT NEXT VALUE FOR likes_seq,
     film_id BIGINT,
     user_id BIGINT,
+    CONSTRAINT likes_pk PRIMARY KEY (film_id, user_id),
     CONSTRAINT likes_film_fk FOREIGN KEY (film_id) REFERENCES films (film_id) ON DELETE CASCADE,
-    CONSTRAINT likes_user_fk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    CONSTRAINT likes_uq UNIQUE (film_id, user_id)
+    CONSTRAINT likes_user_fk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
-CREATE SEQUENCE IF NOT EXISTS user_friends_seq;
 CREATE TABLE IF NOT EXISTS user_friends
 (
-    user_friend_id BIGINT DEFAULT NEXT VALUE FOR user_friends_seq,
-    user_id        BIGINT,
-    friend_id      BIGINT,
+    user_id   BIGINT,
+    friend_id BIGINT,
+    CONSTRAINT user_friends_pk PRIMARY KEY (user_id, friend_id),
     CONSTRAINT user_friends_user_fk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    CONSTRAINT user_friends_friend_fk FOREIGN KEY (friend_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    CONSTRAINT user_friends_uq UNIQUE (user_id, friend_id)
+    CONSTRAINT user_friends_friend_fk FOREIGN KEY (friend_id) REFERENCES users (user_id) ON DELETE CASCADE
 );

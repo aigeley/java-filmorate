@@ -214,7 +214,9 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, COUNT(l.like_id) cnt FROM films f " +
+        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, " +
+                "COUNT(l.user_id) cnt " +
+                "FROM films f " +
                 "LEFT JOIN likes l on f.film_id = l.film_id " +
                 "GROUP BY f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id " +
                 "ORDER BY cnt DESC, f.film_id " +
