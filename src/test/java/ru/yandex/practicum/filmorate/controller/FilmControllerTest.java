@@ -16,13 +16,10 @@ import ru.yandex.practicum.filmorate.model.validation.ReleaseDateValidator;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -157,7 +154,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
     }
 
     @Test
-    void add_addLike_get_shouldReturn200AndLikesList() throws Exception {
+    void add_addLike_get_shouldReturn200AndSameItem() throws Exception {
         long testFilmId = testFilm.getId();
         long testUserId = testUser.getId();
         long userId1 = testUserId + 1;
@@ -171,13 +168,11 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                 .getResponse()
                 .getContentAsString();
         Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
-        assertEquals(2, filmWithLikes.getLikes().size());
-        assertTrue(filmWithLikes.getLikes().contains(testUserId));
-        assertTrue(filmWithLikes.getLikes().contains(userId1));
+        assertEquals(testFilm, filmWithLikes);
     }
 
     @Test
-    void add_addLike_deleteLike_get_shouldReturn200AndActualLikesList() throws Exception {
+    void add_addLike_deleteLike_get_shouldReturn200AndSameItem() throws Exception {
         long testFilmId = testFilm.getId();
         long testUserId = testUser.getId();
         long userId1 = testUserId + 1;
@@ -192,9 +187,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
                 .getResponse()
                 .getContentAsString();
         Film filmWithLikes = objectMapper.readValue(responseText, testItemClass);
-        assertEquals(1, filmWithLikes.getLikes().size());
-        assertTrue(filmWithLikes.getLikes().contains(testUserId));
-        assertFalse(filmWithLikes.getLikes().contains(userId1));
+        assertEquals(testFilm, filmWithLikes);
     }
 
     @Test
@@ -212,6 +205,7 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         Film film1 = testFilm.withId(filmId1);
         Film film2 = testFilm.withId(filmId2);
         Film film3 = testFilm.withId(filmId3);
+        List<Film> expectedPopularFilms = Arrays.asList(testFilm, film1, film2);
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testFilm), status().isOk());
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(film1), status().isOk());
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(film2), status().isOk());
@@ -219,9 +213,6 @@ class FilmControllerTest extends ItemControllerTest<Film> {
         TestUtils.performPut(mockMvc, path + "/" + filmId0 + "/like/" + userId0, "", status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + filmId0 + "/like/" + userId1, "", status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + filmId1 + "/like/" + userId0, "", status().isOk());
-        Film filmWithLikes0 = testFilm.withLikes(new HashSet<>(Arrays.asList(userId0, userId1)));
-        Film filmWithLikes1 = film1.withLikes(new HashSet<>(Arrays.asList(userId0)));
-        List<Film> expectedPopularFilms = Arrays.asList(filmWithLikes0, filmWithLikes1, film2);
         String responseText = TestUtils.performGet(mockMvc, path + "/popular?count=" + count, status().isOk())
                 .getResponse()
                 .getContentAsString();

@@ -28,25 +28,19 @@ public class Film implements Identifiable<Film> {
     LocalDate releaseDate;
     @Positive
     int duration;
-    Set<Long> likes;
     @NotNull
     Mpa mpa;
     Set<Genre> genres;
 
-    public Film(long id, String name, String description, LocalDate releaseDate, int duration, Set<Long> likes, Mpa mpa,
+    public Film(long id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa,
                 Set<Genre> genres) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        this.likes = likes == null ? Collections.emptySet() : likes;
         this.mpa = mpa;
         this.genres = genres == null ? Collections.emptySet() : genres;
-    }
-
-    public Set<Long> getLikes() {
-        return new LinkedHashSet<>(likes);
     }
 
     public Set<Genre> getGenres() {

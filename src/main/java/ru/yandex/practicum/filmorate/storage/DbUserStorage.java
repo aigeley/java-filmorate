@@ -7,12 +7,8 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class DbUserStorage implements UserStorage, RowMapper<User> {
@@ -20,52 +16,6 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
 
     public DbUserStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-    }
-
-    private Set<Long> getFriendsIds(long userId) {
-        String sql = "SELECT friend_id FROM user_friends WHERE user_id = ?";
-
-        return new LinkedHashSet<>(
-                jdbcTemplate.query(
-                        sql,
-                        (rs, rowNum) -> rs.getLong("friend_id"),
-                        userId
-                )
-        );
-    }
-
-    private void rewriteFriendsIds(User user) {
-        deleteFriendsIds(user);
-        insertFriendsIds(user);
-    }
-
-    private void deleteFriendsIds(User user) {
-        long userId = user.getId();
-        String sql = "DELETE FROM user_friends WHERE user_id = ?";
-        jdbcTemplate.update(sql, userId);
-    }
-
-    private void insertFriendsIds(User user) {
-        long userId = user.getId();
-        int friendsCount = user.getFriends().size();
-
-        if (friendsCount == 0) {
-            return; //у пользователя нет друзей
-        }
-
-        String sql = "INSERT INTO user_friends (user_id, friend_id) VALUES "
-                + DbUtils.getPlaceHolders(friendsCount);
-        List<Long> userFriends = new ArrayList<>();
-
-        for (long friendId : user.getFriends()) {
-            userFriends.add(userId);
-            userFriends.add(friendId);
-        }
-
-        jdbcTemplate.update(
-                sql,
-                userFriends.toArray()
-        );
     }
 
     @Override
@@ -107,7 +57,6 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
                 user.getBirthday()
         );
 
-        rewriteFriendsIds(user);
         return user;
     }
 
@@ -125,7 +74,6 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
                 user.getId()
         );
 
-        rewriteFriendsIds(user);
         return user;
     }
 
@@ -150,35 +98,28 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
 
     @Override
     public List<User> getFriends(long userId) {
-        return get(userId)
-                .getFriends()
-                .stream()
-                .map(this::get)
-                .collect(Collectors.toList());
+        String sql = "SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u " +
+                "JOIN user_friends uf ON u.user_id = uf.friend_id AND uf.user_id = ?";
+        return jdbcTemplate.query(sql, this, userId);
     }
 
     @Override
     public List<User> getCommonFriends(long userId, long otherUserId) {
-        return get(userId)
-                .getFriends()
-                .stream()
-                .filter(friendId -> get(otherUserId).getFriends().contains(friendId))
-                .map(this::get)
-                .collect(Collectors.toList());
+        String sql = "SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u " +
+                "JOIN user_friends uf ON u.user_id = uf.friend_id AND uf.user_id = ? " +
+                "INTERSECT SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u " +
+                "JOIN user_friends uf ON u.user_id = uf.friend_id AND uf.user_id = ?";
+        return jdbcTemplate.query(sql, this, userId, otherUserId);
     }
 
     @Override
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-        long userId = rs.getLong("user_id");
-        Set<Long> friends = getFriendsIds(userId);
-
         return new User(
-                userId,
+                rs.getLong("user_id"),
                 rs.getString("email"),
                 rs.getString("login"),
                 rs.getString("user_name"),
-                rs.getDate("birthday").toLocalDate(),
-                friends
+                rs.getDate("birthday").toLocalDate()
         );
     }
 }

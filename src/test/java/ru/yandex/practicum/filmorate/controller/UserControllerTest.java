@@ -11,12 +11,9 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.controller.UserController.BASE_PATH;
 
@@ -115,79 +112,45 @@ class UserControllerTest extends ItemControllerTest<User> {
     }
 
     @Test
-    void add_addFriend_get_shouldReturn200AndMutualFriendsList() throws Exception {
-        long testUserId = testUser.getId();
-        long friendId1 = testUserId + 1;
-        long friendId2 = testUserId + 2;
-        User friend1 = testUser.withId(friendId1);
-        User friend2 = testUser.withId(friendId2);
-        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
-        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
-        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
-        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
-        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
-        TestUtils.performPut(mockMvc, path + "/" + friendId1 + "/friends/" + testUserId, "", status().isOk());
-        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        User userWithFriends = objectMapper.readValue(responseText, testItemClass);
-        assertEquals(2, userWithFriends.getFriends().size());
-        assertTrue(userWithFriends.getFriends().contains(friendId1));
-        assertTrue(userWithFriends.getFriends().contains(friendId2));
-        String responseText1 = TestUtils.performGet(mockMvc, path + "/" + friendId1, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        User usersFriend1 = objectMapper.readValue(responseText1, testItemClass);
-        assertEquals(1, usersFriend1.getFriends().size());
-        assertTrue(usersFriend1.getFriends().contains(testUserId));
-    }
-
-    @Test
-    void add_addFriend_deleteFriend_get_shouldReturn200AndActualFriendsList() throws Exception {
-        long testUserId = testUser.getId();
-        long friendId1 = testUserId + 1;
-        long friendId2 = testUserId + 2;
-        User friend1 = testUser.withId(friendId1);
-        User friend2 = testUser.withId(friendId2);
-        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
-        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
-        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
-        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
-        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
-        TestUtils.performDelete(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, status().isOk());
-        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        User userWithFriends = objectMapper.readValue(responseText, testItemClass);
-        assertEquals(1, userWithFriends.getFriends().size());
-        assertFalse(userWithFriends.getFriends().contains(friendId1));
-        assertTrue(userWithFriends.getFriends().contains(friendId2));
-        String responseText1 = TestUtils.performGet(mockMvc, path + "/" + friendId1, status().isOk())
-                .getResponse()
-                .getContentAsString();
-        User usersFriend1 = objectMapper.readValue(responseText1, testItemClass);
-        assertEquals(0, usersFriend1.getFriends().size());
-    }
-
-    @Test
     void add_addFriend_getFriends_shouldReturn200AndListOfAllFriends() throws Exception {
         long testUserId = testUser.getId();
         long friendId1 = testUserId + 1;
         long friendId2 = testUserId + 2;
         User friend1 = testUser.withId(friendId1);
         User friend2 = testUser.withId(friendId2);
+        List<User> expectedUserFriends = Arrays.asList(friend1, friend2);
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
-        User userFriend1 = friend1.withFriends(new HashSet<>(Arrays.asList(testUserId)));
-        User userFriend2 = friend2.withFriends(new HashSet<>(Arrays.asList(testUserId)));
-        List<User> expectedUserFriends = Arrays.asList(userFriend1, userFriend2);
         String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId + "/friends", status().isOk())
                 .getResponse()
                 .getContentAsString();
         List<User> actualUserFriends = objectMapper.readValue(responseText, typeOfList);
+        assertEquals(2, actualUserFriends.size());
+        assertEquals(expectedUserFriends, actualUserFriends);
+    }
+
+    @Test
+    void add_addFriend_deleteFriend_getFriends_shouldReturn200AndActualFriendsList() throws Exception {
+        long testUserId = testUser.getId();
+        long friendId1 = testUserId + 1;
+        long friendId2 = testUserId + 2;
+        User friend1 = testUser.withId(friendId1);
+        User friend2 = testUser.withId(friendId2);
+        List<User> expectedUserFriends = Arrays.asList(friend2);
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
+        TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
+        TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
+        TestUtils.performDelete(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, status().isOk());
+        String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId + "/friends", status().isOk())
+                .getResponse()
+                .getContentAsString();
+        List<User> actualUserFriends = objectMapper.readValue(responseText, typeOfList);
+        assertEquals(1, actualUserFriends.size());
         assertEquals(expectedUserFriends, actualUserFriends);
     }
 
@@ -198,14 +161,13 @@ class UserControllerTest extends ItemControllerTest<User> {
         long friendId2 = testUserId + 2;
         User friend1 = testUser.withId(friendId1);
         User friend2 = testUser.withId(friendId2);
+        List<User> expectedCommonFriends = Arrays.asList(friend2);
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(testUser), status().isOk());
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend1), status().isOk());
         TestUtils.performPost(mockMvc, path, objectMapper.writeValueAsString(friend2), status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId1, "", status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + testUserId + "/friends/" + friendId2, "", status().isOk());
         TestUtils.performPut(mockMvc, path + "/" + friendId1 + "/friends/" + friendId2, "", status().isOk());
-        User userFriend2 = friend2.withFriends(new HashSet<>(Arrays.asList(testUserId, friendId1)));
-        List<User> expectedCommonFriends = Arrays.asList(userFriend2);
         String responseText = TestUtils.performGet(mockMvc, path + "/" + testUserId + "/friends/common/" + friendId1, status().isOk())
                 .getResponse()
                 .getContentAsString();

@@ -72,52 +72,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
         );
     }
 
-    private Set<Long> getLikes(long filmId) {
-        String sql = "SELECT user_id FROM likes WHERE film_id = ?";
-
-        return new LinkedHashSet<>(
-                jdbcTemplate.query(
-                        sql,
-                        (rs, rowNum) -> rs.getLong("user_id"),
-                        filmId
-                )
-        );
-    }
-
-    private void rewriteLikes(Film film) {
-        deleteLikes(film);
-        insertLikes(film);
-    }
-
-    private void deleteLikes(Film film) {
-        long filmId = film.getId();
-        String sql = "DELETE FROM likes WHERE film_id = ?";
-        jdbcTemplate.update(sql, filmId);
-    }
-
-    private void insertLikes(Film film) {
-        long filmId = film.getId();
-        int likesCount = film.getLikes().size();
-
-        if (likesCount == 0) {
-            return; //у фильма нет лайков
-        }
-
-        String sql = "INSERT INTO likes (film_id, user_id) VALUES "
-                + DbUtils.getPlaceHolders(likesCount);
-        List<Long> filmLikes = new ArrayList<>();
-
-        for (long userId : film.getLikes()) {
-            filmLikes.add(filmId);
-            filmLikes.add(userId);
-        }
-
-        jdbcTemplate.update(
-                sql,
-                filmLikes.toArray()
-        );
-    }
-
     @Override
     public long getNextId() {
         String sql = "SELECT NEXT VALUE FOR films_seq nextval";
@@ -162,7 +116,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
                 film.getMpa().getId()
         );
 
-        rewriteLikes(film);
         rewriteGenres(film);
         return film;
     }
@@ -182,7 +135,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
                 film.getId()
         );
 
-        rewriteLikes(film);
         rewriteGenres(film);
         return film;
     }
@@ -223,7 +175,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
     public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
         long filmId = rs.getLong("film_id");
         Set<Genre> genres = getGenres(filmId);
-        Set<Long> likes = getLikes(filmId);
 
         return new Film(
                 filmId,
@@ -231,7 +182,6 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
                 rs.getString("description"),
                 rs.getDate("release_date").toLocalDate(),
                 rs.getInt("duration"),
-                likes,
                 new Mpa(rs.getInt("mpa_id"), rs.getString("mpa_name")),
                 genres
         );

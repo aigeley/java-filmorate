@@ -10,10 +10,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 
 @With
 @Value
@@ -28,23 +25,17 @@ public class User implements Identifiable<User> {
     String name;
     @PastOrPresent
     LocalDate birthday;
-    Set<Long> friends;
 
-    public User(long id, String email, String login, String name, LocalDate birthday, Set<Long> friends) {
+    public User(long id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
         this.email = email;
         this.login = login;
         this.name = name;
         this.birthday = birthday;
-        this.friends = friends == null ? Collections.emptySet() : friends;
     }
 
     public String getName() {
         return StringUtils.hasText(name) ? name : login; //если name не указано, то используем login
-    }
-
-    public Set<Long> getFriends() {
-        return new LinkedHashSet<>(friends);
     }
 
     @Override
