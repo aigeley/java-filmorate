@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.DbUtils;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,10 +18,10 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
+public class FilmStorageImpl implements FilmStorage, RowMapper<Film> {
     private final JdbcTemplate jdbcTemplate;
 
-    public DbFilmStorage(JdbcTemplate jdbcTemplate) {
+    public FilmStorageImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -87,17 +89,14 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
     @Override
     public Film get(long filmId) {
         String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name " +
-                "FROM films f " +
-                "JOIN mpa m on m.mpa_id = f.mpa_id " +
-                "AND f.film_id = ?";
+                "FROM films f, mpa m WHERE m.mpa_id = f.mpa_id AND f.film_id = ?";
         return jdbcTemplate.queryForObject(sql, this, filmId);
     }
 
     @Override
     public Collection<Film> getAll() {
         String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name " +
-                "FROM films f " +
-                "JOIN mpa m on m.mpa_id = f.mpa_id";
+                "FROM films f, mpa m WHERE m.mpa_id = f.mpa_id";
         return jdbcTemplate.query(sql, this);
     }
 
@@ -160,11 +159,11 @@ public class DbFilmStorage implements FilmStorage, RowMapper<Film> {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name, " +
-                "COUNT(l.user_id) cnt " +
+        String sql = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, " +
+                "m.mpa_name, COUNT(l.user_id) cnt " +
                 "FROM films f " +
-                "JOIN mpa m on m.mpa_id = f.mpa_id " +
-                "LEFT JOIN likes l on f.film_id = l.film_id " +
+                "JOIN mpa m ON m.mpa_id = f.mpa_id " +
+                "LEFT JOIN likes l ON f.film_id = l.film_id " +
                 "GROUP BY f.film_id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name " +
                 "ORDER BY cnt DESC, f.film_id " +
                 "LIMIT ?";

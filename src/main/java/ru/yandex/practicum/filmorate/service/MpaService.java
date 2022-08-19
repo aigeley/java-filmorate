@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
-import ru.yandex.practicum.filmorate.storage.DbMpaStorage;
+import ru.yandex.practicum.filmorate.storage.impl.MpaStorageImpl;
 
 import java.util.Collection;
 
@@ -11,9 +11,9 @@ import java.util.Collection;
 public class MpaService {
     protected final String itemName;
     private static final String ITEM_NAME = "рейтинг MPA";
-    private final DbMpaStorage mpaStorage;
+    private final MpaStorageImpl mpaStorage;
 
-    protected MpaService(DbMpaStorage mpaStorage) {
+    protected MpaService(MpaStorageImpl mpaStorage) {
         this.itemName = ITEM_NAME;
         this.mpaStorage = mpaStorage;
     }

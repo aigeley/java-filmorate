@@ -1,9 +1,10 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,10 +12,10 @@ import java.util.Collection;
 import java.util.List;
 
 @Component
-public class DbUserStorage implements UserStorage, RowMapper<User> {
+public class UserStorageImpl implements UserStorage, RowMapper<User> {
     private final JdbcTemplate jdbcTemplate;
 
-    public DbUserStorage(JdbcTemplate jdbcTemplate) {
+    public UserStorageImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -98,17 +99,17 @@ public class DbUserStorage implements UserStorage, RowMapper<User> {
 
     @Override
     public List<User> getFriends(long userId) {
-        String sql = "SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u " +
-                "JOIN user_friends uf ON u.user_id = uf.friend_id AND uf.user_id = ?";
+        String sql = "SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u, user_friends uf " +
+                "WHERE u.user_id = uf.friend_id AND uf.user_id = ?";
         return jdbcTemplate.query(sql, this, userId);
     }
 
     @Override
     public List<User> getCommonFriends(long userId, long otherUserId) {
-        String sql = "SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u " +
-                "JOIN user_friends uf ON u.user_id = uf.friend_id AND uf.user_id = ? " +
-                "INTERSECT SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u " +
-                "JOIN user_friends uf ON u.user_id = uf.friend_id AND uf.user_id = ?";
+        String sql = "SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u, user_friends uf " +
+                "WHERE u.user_id = uf.friend_id AND uf.user_id = ? " +
+                "INTERSECT SELECT u.user_id, u.email, u.login, u.user_name, u.birthday FROM users u, user_friends uf " +
+                "WHERE u.user_id = uf.friend_id AND uf.user_id = ?";
         return jdbcTemplate.query(sql, this, userId, otherUserId);
     }
 

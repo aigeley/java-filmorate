@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.exception.ItemNotFoundException;
-import ru.yandex.practicum.filmorate.storage.DbGenreStorage;
+import ru.yandex.practicum.filmorate.storage.impl.GenreStorageImpl;
 
 import java.util.Collection;
 
@@ -11,9 +11,9 @@ import java.util.Collection;
 public class GenreService {
     protected final String itemName;
     private static final String ITEM_NAME = "жанр";
-    private final DbGenreStorage genreStorage;
+    private final GenreStorageImpl genreStorage;
 
-    protected GenreService(DbGenreStorage genreStorage) {
+    protected GenreService(GenreStorageImpl genreStorage) {
         this.itemName = ITEM_NAME;
         this.genreStorage = genreStorage;
     }

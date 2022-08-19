@@ -1,13 +1,14 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 
 @Component
-public class DbLikeStorage implements LikeStorage {
+public class LikeStorageImpl implements LikeStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    public DbLikeStorage(JdbcTemplate jdbcTemplate) {
+    public LikeStorageImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

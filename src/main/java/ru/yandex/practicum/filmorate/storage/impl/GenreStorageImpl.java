@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,10 +10,10 @@ import java.sql.SQLException;
 import java.util.Collection;
 
 @Component
-public class DbGenreStorage implements RowMapper<Genre> {
+public class GenreStorageImpl implements RowMapper<Genre> {
     private final JdbcTemplate jdbcTemplate;
 
-    public DbGenreStorage(JdbcTemplate jdbcTemplate) {
+    public GenreStorageImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

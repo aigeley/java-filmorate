@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,10 +10,10 @@ import java.sql.SQLException;
 import java.util.Collection;
 
 @Component
-public class DbMpaStorage implements RowMapper<Mpa> {
+public class MpaStorageImpl implements RowMapper<Mpa> {
     private final JdbcTemplate jdbcTemplate;
 
-    public DbMpaStorage(JdbcTemplate jdbcTemplate) {
+    public MpaStorageImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
