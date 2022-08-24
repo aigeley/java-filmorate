@@ -19,12 +19,12 @@ public abstract class ItemController<T extends Identifiable<T>> {
         this.itemService = itemService;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     public T get(@PathVariable("id") long itemId) {
         return itemService.get(itemId);
     }
 
-    @GetMapping
+    @GetMapping(produces = "application/json;charset=UTF-8")
     public Collection<T> getAll() {
         return itemService.getAll();
     }

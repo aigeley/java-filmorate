@@ -34,12 +34,12 @@ public class UserController extends ItemController<User> {
         userService.deleteFriend(userId, friendId);
     }
 
-    @GetMapping("/{id}/friends")
+    @GetMapping(value = "/{id}/friends", produces = "application/json;charset=UTF-8")
     public List<User> getFriends(@PathVariable("id") long userId) {
         return userService.getFriends(userId);
     }
 
-    @GetMapping("/{id}/friends/common/{otherId}")
+    @GetMapping(value = "/{id}/friends/common/{otherId}", produces = "application/json;charset=UTF-8")
     public List<User> getCommonFriends(@PathVariable("id") long userId, @PathVariable("otherId") long otherUserId) {
         return userService.getCommonFriends(userId, otherUserId);
     }
